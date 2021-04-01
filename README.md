@@ -94,13 +94,14 @@ const ranks = [...Number.range(2, 11), ..."JQKA".split("")];
 let deck = Array.cartesianProduct(suits, ranks).map((card) => card.join(""));
 
 // Fisher-Yates + random cut
-deck = deck.shuffle().rotate(Number.random(0, 52));
+deck = deck.shuffle().rotate(Number.random(0, deck.length));
 
 const players = ["Douglas Crockford", "Marc Andreessen", "John-David Dalton"];
 
 let playersCards;
 [playersCards, deck] = deck.splitAt(2 * players.length);
 playersCards = Array.zip(...playersCards.chunk(players.length));
+const hands = Object.fromEntries(players.zip(playersCards));
 
 let flop, turn, river;
 
@@ -109,11 +110,30 @@ let flop, turn, river;
 [river, deck] = deck.drop(1).splitAt(1);
 
 const game = {
-  players: players.zip(playersCards).pipe(Object.fromEntries),
+  hands,
   community: { flop, turn, river }
 };
 
 console.log(game);
+```
+
+### Merge Sort
+
+```js
+const mergeSort = (L) =>
+  L.length <= 1
+    ? L
+    : L.splitAt(L.length / 2)
+        .map(mergeSort)
+        .pipe((L) => merge(...L));
+
+const merge = Function.conditional([
+  [(A, B) => A.empty() || B.empty(), (A, B) => A.concat(B)],
+  [([a], [b]) => a < b, ([a, ...A], B) => [a, ...merge(A, B)]],
+  [Function.true, (A, B) => merge(B, A)] // ba-dum-ts
+]);
+
+Number.range(10).shuffle().pipe(mergeSort).pipe(console.log);
 ```
 
 ### Fuzzy string match

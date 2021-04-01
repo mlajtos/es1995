@@ -45,7 +45,7 @@ ES1995 is a polyfill for super-modern Javascript that you can write today.
 ### Fancy FizzBuzz
 
 ```js
-Array.range(1, 101)
+Number.range(1, 101)
   .map(
     Function.conditional([
       // 15 === Number.leastCommonMultiple(3, 5)
@@ -89,7 +89,7 @@ console.assert(n === m);
 
 ```js
 const suits = "♠♥♦♣".split("");
-const ranks = [...Array.range(2, 11), ..."JQKA".split("")];
+const ranks = [...Number.range(2, 11), ..."JQKA".split("")];
 
 let deck = Array.cartesianProduct(suits, ranks).map((card) => card.join(""));
 

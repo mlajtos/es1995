@@ -176,6 +176,17 @@ const add = (a, b) => a + b;
 const add10 = add.partial(10);
 ```
 
+### Array Indexing
+
+```js
+const squares = Number.range(10).map((i) => i ** 2);
+const oddIndices = Number.range(1, 10, 2);
+
+const squaresAtOddIndices = squares.at(oddIndices);
+
+console.log(squares, oddIndices, squaresAtOddIndices);
+```
+
 ---
 
 Checkout `src/es1995.js` for other funky stuff.

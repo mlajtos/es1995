@@ -695,9 +695,7 @@ const NumberPrototype = {
     return floor(this, precision);
   },
   fractionalPart(this: number): number {
-    const parts = (this + "").split(".");
-    if (parts.length < 2) return 0;
-    return parseFloat("0." + parts[1]);
+    return Math.abs(this % 1);
   },
   integerPart(this: number): number {
     return Math.abs(Math.trunc(this));

@@ -349,7 +349,7 @@ now.endOfMonth();                      // 2026-04-30T23:59:59
 
 // JavaScript's birthday – first public release with Netscape Navigator 2.0
 const jsBirthday = new Date(1995, 11, 4); // December 4, 1995
-jsBirthday.age();        // 30
+jsBirthday.age();        // 30 (as of 2026-04-01)
 jsBirthday.relative();   // "30 years ago"
 
 Date.today();     // start of today

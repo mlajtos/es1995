@@ -330,9 +330,10 @@ test("Date Manipulation", () => {
 
   // JavaScript's birthday – first public release with Netscape Navigator 2.0
   const jsBirthday = new Date(1995, 11, 4); // December 4, 1995
-  console.log("JavaScript's age:", jsBirthday.age()); // 30
-  console.log("Relative:", jsBirthday.relative()); // "30 years ago"
-  console.log("Days since JS was born:", jsBirthday.daysUntil(now)); // ~11,076
+  // age() and relative() use the real current date, not the pretend date above
+  console.log("JavaScript's age:", jsBirthday.age());
+  console.log("Relative:", jsBirthday.relative());
+  console.log("Days since JS was born:", jsBirthday.daysUntil(now));
 
   console.log("Today:", Date.today().format("YYYY-MM-DD"));
   console.log("Tomorrow:", Date.tomorrow().format("YYYY-MM-DD"));

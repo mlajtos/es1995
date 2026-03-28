@@ -489,6 +489,254 @@ const oddIndices = Number.range(1, 10, 2);
 const squaresAtOddIndices = squares.at(oddIndices);
 ```
 
+### Caesar Cipher
+
+```ts
+const alphabet = "abcdefghijklmnopqrstuvwxyz".chars();
+
+const shift = (text: string, n: number): string =>
+  text
+    .chars()
+    .map((ch) => {
+      const idx = alphabet.indexOf(ch.toLowerCase());
+      if (idx === -1) return ch;
+      const shifted = alphabet[(idx + n + 26) % 26];
+      return ch === ch.toUpperCase() ? shifted.toUpperCase() : shifted;
+    })
+    .join("");
+
+const encrypt = (text: string, key: number) => shift(text, key);
+const decrypt = (text: string, key: number) => shift(text, -key);
+
+const message = "Et tu, Brute?";
+const encrypted = encrypt(message, 13);  // "Rg gh, Oehgr?"
+const decrypted = decrypt(encrypted, 13); // "Et tu, Brute?"
+
+// Brute-force all 26 rotations
+Number.range(0, 26)
+  .map((n) => ({ rotation: n, text: shift(encrypted, n) }))
+  .first((r) => r.text === message)
+  .pipe(console.log);
+```
+
+### CSV Parser & Analyzer
+
+Parse raw CSV → typed records → aggregate stats in one pipeline:
+
+```ts
+const csv = `name,department,salary
+Alice,Engineering,120000
+Bob,Marketing,95000
+Charlie,Engineering,135000
+Diana,Marketing,105000
+Eve,Engineering,128000
+Frank,Design,110000
+Grace,Design,115000`;
+
+const [headerLine, ...rows] = csv.lines();
+const headers = headerLine.split(",");
+
+const employees = rows
+  .map((row) => row.split(","))
+  .map((cols) =>
+    headers.toObject(
+      (h) => h,
+      (h, i) => (h === "salary" ? cols[i].toNumber() : cols[i]),
+    ),
+  );
+
+// Department summary
+Object.entries(employees.groupBy("department"))
+  .map(([dept, members]) => ({
+    department: dept,
+    headcount: members.count(),
+    avgSalary: members.map((m) => m.salary).average().round(0),
+    topEarner: members.sortBy("salary").reversed().first().name,
+  }))
+  .sortBy("avgSalary")
+  .reversed()
+  .pipe(console.log);
+
+// Engineering: 3 people, avg $127667, top: Charlie
+// Design:      2 people, avg $112500, top: Grace
+// Marketing:   2 people, avg $100000, top: Diana
+```
+
+### Event Schedule Planner
+
+```ts
+const now = new Date(2026, 3, 1, 23, 47, 0);
+
+const events = [
+  { title: "Standup",       offset: 1, hour: 9,  min: 0,  duration: 15 },
+  { title: "Sprint Review", offset: 2, hour: 14, min: 0,  duration: 60 },
+  { title: "Lunch & Learn", offset: 3, hour: 12, min: 30, duration: 45 },
+  { title: "Deploy Window", offset: 4, hour: 16, min: 0,  duration: 120 },
+  { title: "Retro",         offset: 5, hour: 10, min: 0,  duration: 90 },
+  { title: "Happy Hour",    offset: 5, hour: 17, min: 0,  duration: 60 },
+].map((e) => {
+  const start = now.startOfDay().addDays(e.offset).addHours(e.hour).addMinutes(e.min);
+  return {
+    title: e.title,
+    day: start.format("YYYY-MM-DD"),
+    time: `${start.format("HH:mm")}–${start.addMinutes(e.duration).format("HH:mm")}`,
+    durationStr: (e.duration * 60000).duration(),
+  };
+});
+
+// Group by day → print schedule
+Object.entries(events.groupBy("day"))
+  .sorted(([a], [b]) => a.localeCompare(b))
+  .map(([day, evts]) =>
+    `${day}:\n` + evts.sortBy("time").map((e) => `  ${e.time} ${e.title}`).join("\n"),
+  )
+  .pipe((lines) => lines.join("\n"))
+  .pipe(console.log);
+```
+
+### Conway's Game of Life
+
+A single step of Conway's Game of Life using pure array transformations:
+
+```ts
+type Grid = number[][];
+
+const grid: Grid = [
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 1, 0, 0, 0, 0, 0],  // Glider
+  [0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 1, 1, 1, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 0, 0, 0],
+];
+
+const neighbors = (g: Grid, r: number, c: number): number =>
+  (-1).to(2)
+    .flatMap((dr) => (-1).to(2).map((dc) => [dr, dc]))
+    .reject(([dr, dc]) => dr === 0 && dc === 0)
+    .map(([dr, dc]) => (g[r + dr] ?? [])[c + dc] ?? 0)
+    .sum();
+
+const step = (g: Grid): Grid =>
+  g.map((row, r) =>
+    row.map((cell, c) => {
+      const n = neighbors(g, r, c);
+      return cell === 1
+        ? (n === 2 || n === 3 ? 1 : 0)   // survive
+        : (n === 3 ? 1 : 0);              // birth
+    }),
+  );
+
+const render = (g: Grid): string =>
+  g.map((row) => row.map((c) => (c ? "█" : "·")).join(" ")).join("\n");
+
+console.log("Gen 0:\n" + render(grid));
+console.log("Gen 1:\n" + render(step(grid)));
+```
+
+### Sieve of Eratosthenes
+
+Functional prime sieve using ES1995 array primitives:
+
+```ts
+const sieve = (limit: number): number[] => {
+  const candidates = Number.range(2, limit + 1);
+  const go = (nums: number[]): number[] => {
+    if (nums.empty()) return [];
+    const [prime, ...rest] = nums;
+    return [prime, ...go(rest.reject((n) => n.multipleOf(prime)))];
+  };
+  return go(candidates);
+};
+
+const primes = sieve(100);
+console.log("Primes:", primes.join(", "));
+
+// Twin primes
+primes
+  .pairwise()
+  .filter(([a, b]) => b - a === 2)
+  .map(([a, b]) => `(${a}, ${b})`)
+  .pipe(console.log);  // (3, 5), (5, 7), (11, 13), (17, 19), (29, 31), ...
+
+// Prime gap histogram
+primes
+  .pairwise()
+  .map(([a, b]) => b - a)
+  .frequencies()
+  .pipe(Object.entries)
+  .sorted(([a], [b]) => a - b)
+  .map(([gap, count]) => `gap ${gap}: ${"█".repeat(count)} (${count})`)
+  .pipe(console.log);
+```
+
+### Budget Tracker
+
+A personal finance pipeline combining Date, String, Number, and Object:
+
+```ts
+const transactions = [
+  { date: "2026-04-01", category: "food",    amount: -45.50,  description: "Groceries" },
+  { date: "2026-04-01", category: "income",  amount: 3200,    description: "Salary" },
+  { date: "2026-04-02", category: "food",    amount: -28.75,  description: "Restaurant" },
+  { date: "2026-04-03", category: "utilities", amount: -89.00, description: "Electricity" },
+  { date: "2026-04-04", category: "income",  amount: 450,     description: "Freelance" },
+  // ...
+];
+
+// Running balance via scan
+transactions
+  .map((t) => t.amount)
+  .scan((acc, x) => acc + x, 0)
+  .zip(transactions)
+  .map(([bal, t]) => `${t.date} ${t.description.padEnd(15)} → $${bal.toFixed(2)}`)
+  .pipe(console.log);
+
+// Spending by category
+transactions
+  .reject((t) => t.category === "income")
+  .groupBy("category")
+  .pipe(Object.entries)
+  .map(([cat, txns]) => ({
+    category: cat,
+    total: txns.map((t) => t.amount).sum().round(2),
+  }))
+  .sortBy("total")
+  .pipe(console.log);
+```
+
+### Morse Code Translator
+
+```ts
+const morseTable: Record<string, string> = {
+  A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.",
+  G: "--.", H: "....", I: "..", J: ".---", K: "-.-", L: ".-..",
+  M: "--", N: "-.", O: "---", P: ".--.", Q: "--.-", R: ".-.",
+  S: "...", T: "-", U: "..-", V: "...-", W: ".--", X: "-..-",
+  Y: "-.--", Z: "--..", " ": "/",
+  "0": "-----", "1": ".----", "2": "..---", "3": "...--",
+  "4": "....-", "5": ".....", "6": "-....", "7": "--...",
+  "8": "---..", "9": "----.",
+};
+
+// Build reverse lookup using toObject
+const reverseMorse = Object.entries(morseTable)
+  .toObject(([, code]) => code, ([letter]) => letter);
+
+const encode = (text: string): string =>
+  text.toUpperCase().chars()
+    .map((ch) => morseTable[ch] ?? ch)
+    .join(" ");
+
+const decode = (morse: string): string =>
+  morse.split(" ").map((code) => reverseMorse[code] ?? code).join("");
+
+encode("Hello World");  // ".... . .-.. .-.. --- / .-- --- .-. .-.. -.."
+decode(encode("Hello World"));  // "HELLO WORLD"
+```
+
 ---
 
 Checkout `src/es1995.ts` for other funky stuff.

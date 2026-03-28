@@ -497,3 +497,315 @@ test("Roman Numeral Timeline", () => {
     .pipe((lines: string[]) => lines.join("\n"))
     .pipe(console.log);
 });
+
+test("Caesar Cipher", () => {
+  // Encrypt & decrypt using character math and modular arithmetic
+  const alphabet = "abcdefghijklmnopqrstuvwxyz".chars();
+
+  const shift = (text: string, n: number): string =>
+    text
+      .chars()
+      .map((ch) => {
+        const idx = alphabet.indexOf(ch.toLowerCase());
+        if (idx === -1) return ch; // keep spaces, punctuation
+        const shifted = alphabet[(idx + n + 26) % 26];
+        return ch === ch.toUpperCase() ? shifted.toUpperCase() : shifted;
+      })
+      .join("");
+
+  const encrypt = (text: string, key: number) => shift(text, key);
+  const decrypt = (text: string, key: number) => shift(text, -key);
+
+  const message = "Et tu, Brute?";
+  const key = 13; // ROT13
+
+  const encrypted = encrypt(message, key);
+  const decrypted = decrypt(encrypted, key);
+
+  console.log("Original: ", message);
+  console.log("Encrypted:", encrypted);   // "Rg gh, Oehgr?"
+  console.log("Decrypted:", decrypted);   // "Et tu, Brute?"
+  console.log("Roundtrip:", message === decrypted);
+
+  // Brute-force all 26 rotations
+  Number.range(0, 26)
+    .map((n) => ({ rotation: n, text: shift(encrypted, n) }))
+    .first((r: any) => r.text === message)
+    .pipe(console.log);
+});
+
+test("CSV Parser & Analyzer", () => {
+  // Parse raw CSV → typed records → aggregate stats, all in one pipeline
+  const csv = `name,department,salary
+Alice,Engineering,120000
+Bob,Marketing,95000
+Charlie,Engineering,135000
+Diana,Marketing,105000
+Eve,Engineering,128000
+Frank,Design,110000
+Grace,Design,115000`;
+
+  const [headerLine, ...rows] = csv.lines();
+  const headers = headerLine.split(",");
+
+  const employees = rows
+    .map((row) => row.split(","))
+    .map((cols) =>
+      headers.toObject(
+        (h) => h as string,
+        (h, i) => (h === "salary" ? (cols[i] as unknown as string).toNumber() : cols[i]),
+      ),
+    ) as { name: string; department: string; salary: number }[];
+
+  // Department summary: average salary, head count, top earner
+  const report = Object.entries(employees.groupBy("department") as Record<string, typeof employees>)
+    .map(([dept, members]) => ({
+      department: dept,
+      headcount: members.count(),
+      avgSalary: (members.map((m) => m.salary) as number[]).average().round(0),
+      topEarner: (members as typeof employees).sortBy("salary").reversed().first()!.name,
+    }))
+    .sortBy("avgSalary")
+    .reversed();
+
+  console.log("Employee records:", employees);
+  console.log("Department report:");
+  report
+    .map(
+      (r) =>
+        `  ${r.department}: ${r.headcount} people, avg $${r.avgSalary}, top: ${r.topEarner}`,
+    )
+    .pipe((lines: string[]) => lines.join("\n"))
+    .pipe(console.log);
+});
+
+test("Event Schedule Planner", () => {
+  // Pretend it is 2026-04-01T23:47:00
+  const now = new Date(2026, 3, 1, 23, 47, 0);
+
+  // Generate a week of events with computed dates
+  const events = [
+    { title: "Standup",      offset: 1, hour: 9,  min: 0,  duration: 15 },
+    { title: "Sprint Review", offset: 2, hour: 14, min: 0,  duration: 60 },
+    { title: "Lunch & Learn", offset: 3, hour: 12, min: 30, duration: 45 },
+    { title: "Deploy Window", offset: 4, hour: 16, min: 0,  duration: 120 },
+    { title: "Retro",         offset: 5, hour: 10, min: 0,  duration: 90 },
+    { title: "Happy Hour",    offset: 5, hour: 17, min: 0,  duration: 60 },
+    { title: "Standup",       offset: 6, hour: 9,  min: 0,  duration: 15 },
+  ].map((e) => {
+    const start = now
+      .startOfDay()
+      .addDays(e.offset)
+      .addHours(e.hour)
+      .addMinutes(e.min);
+    return {
+      title: e.title,
+      start,
+      end: start.addMinutes(e.duration),
+      day: start.format("YYYY-MM-DD"),
+      time: `${start.format("HH:mm")}–${start.addMinutes(e.duration).format("HH:mm")}`,
+      durationStr: (e.duration * 60000).duration(),
+    };
+  });
+
+  // Group by day, show schedule
+  const schedule = events.groupBy("day") as Record<string, typeof events>;
+  Object.entries(schedule)
+    .sorted(([a], [b]) => (a as string).localeCompare(b as string))
+    .map(([day, evts]) => {
+      const dayEvents = (evts as typeof events)
+        .sortBy("start")
+        .map((e) => `    ${e.time} ${e.title} (${e.durationStr})`)
+        .join("\n");
+      return `  ${day}:\n${dayEvents}`;
+    })
+    .pipe((lines: string[]) => lines.join("\n"))
+    .pipe(console.log);
+
+  // Which day is busiest?
+  const busiest = Object.entries(schedule)
+    .sorted(([, a], [, b]) => (b as unknown[]).length - (a as unknown[]).length)
+    .first() as [string, unknown[]];
+  console.log(`Busiest day: ${busiest[0]} with ${busiest[1].length} events`);
+});
+
+test("Conway's Game of Life – One Generation", () => {
+  // A single step of Conway's Game of Life using pure array transformations
+  type Grid = number[][];
+
+  // Glider on an 8×8 board
+  const grid: Grid = [
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0, 0, 0],
+    [0, 1, 1, 1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0],
+  ];
+
+  const neighbors = (g: Grid, r: number, c: number): number =>
+    (-1).to(2)
+      .flatMap((dr) => (-1).to(2).map((dc) => [dr, dc]))
+      .reject(([dr, dc]) => dr === 0 && dc === 0)
+      .map(([dr, dc]) => (g[r + dr] ?? [])[c + dc] ?? 0)
+      .sum();
+
+  const step = (g: Grid): Grid =>
+    g.map((row, r) =>
+      row.map((cell, c) => {
+        const n = neighbors(g, r, c);
+        return cell === 1
+          ? (n === 2 || n === 3 ? 1 : 0)   // survive
+          : (n === 3 ? 1 : 0);              // birth
+      }),
+    );
+
+  const render = (g: Grid): string =>
+    g.map((row) => row.map((c) => (c ? "█" : "·")).join(" ")).join("\n");
+
+  console.log("Generation 0:\n" + render(grid));
+  const gen1 = step(grid);
+  console.log("\nGeneration 1:\n" + render(gen1));
+  const gen2 = step(gen1);
+  console.log("\nGeneration 2:\n" + render(gen2));
+});
+
+test("Sieve of Eratosthenes", () => {
+  // Functional sieve using ES1995 array primitives
+  const sieve = (limit: number): number[] => {
+    const candidates = Number.range(2, limit + 1);
+
+    const go = (nums: number[]): number[] => {
+      if (nums.empty()) return [];
+      const [prime, ...rest] = nums;
+      return [prime, ...go(rest.reject((n) => (n as number).multipleOf(prime)))];
+    };
+
+    return go(candidates);
+  };
+
+  const primes = sieve(100);
+
+  console.log(`Found ${primes.count()} primes up to 100`);
+  console.log("Primes:", primes.join(", "));
+
+  // Twin primes (pairs differing by 2)
+  const twins = primes
+    .pairwise()
+    .filter(([a, b]) => (b as number) - (a as number) === 2)
+    .map(([a, b]) => `(${a}, ${b})`);
+
+  console.log("Twin primes:", twins.join(", "));
+
+  // Prime gaps histogram
+  primes
+    .pairwise()
+    .map(([a, b]) => (b as number) - (a as number))
+    .frequencies()
+    .pipe((freq: Record<string, number>) => Object.entries(freq))
+    .sorted(([a], [b]) => (a as unknown as number) - (b as unknown as number))
+    .map(([gap, count]: [string, number]) => `  gap ${gap}: ${"█".repeat(count)} (${count})`)
+    .pipe((lines: string[]) => lines.join("\n"))
+    .pipe((s: string) => "Prime gap distribution:\n" + s)
+    .pipe(console.log);
+});
+
+test("Budget Tracker", () => {
+  // A personal finance pipeline showing date, string, number, and object interplay
+  interface Transaction {
+    date: string;
+    category: string;
+    amount: number;
+    description: string;
+  }
+
+  const transactions: Transaction[] = [
+    { date: "2026-04-01", category: "food",      amount: -45.50,  description: "Groceries" },
+    { date: "2026-04-01", category: "income",    amount: 3200,    description: "Salary" },
+    { date: "2026-04-02", category: "transport",  amount: -12.00,  description: "Bus pass" },
+    { date: "2026-04-02", category: "food",      amount: -28.75,  description: "Restaurant" },
+    { date: "2026-04-03", category: "utilities", amount: -89.00,  description: "Electricity" },
+    { date: "2026-04-03", category: "food",      amount: -32.00,  description: "Groceries" },
+    { date: "2026-04-04", category: "entertainment", amount: -15.99, description: "Streaming" },
+    { date: "2026-04-04", category: "income",    amount: 450,     description: "Freelance" },
+    { date: "2026-04-05", category: "food",      amount: -55.00,  description: "Dinner out" },
+    { date: "2026-04-05", category: "transport",  amount: -35.00,  description: "Gas" },
+  ];
+
+  // Running balance (scan)
+  const balances = transactions
+    .map((t) => t.amount)
+    .scan((acc, x) => acc + x, 0);
+
+  console.log(
+    "Running balance:",
+    transactions
+      .zip(balances)
+      .map(([t, bal]) => `${(t as Transaction).date} ${(t as Transaction).description.padEnd(15)} ${(t as Transaction).amount >= 0 ? "+" : ""}${(t as Transaction).amount.toFixed(2).padStart(10)} → $${(bal as number).toFixed(2)}`)
+      .pipe((lines: string[]) => lines.join("\n")),
+  );
+
+  // Spending by category (excluding income)
+  const spending = transactions
+    .reject((t) => t.category === "income")
+    .groupBy("category") as Record<string, Transaction[]>;
+
+  console.log("\nSpending by category:");
+  Object.entries(spending)
+    .map(([cat, txns]) => ({
+      category: cat,
+      total: (txns as Transaction[]).map((t) => t.amount).sum().round(2),
+      count: (txns as Transaction[]).count(),
+    }))
+    .sortBy("total")
+    .map((c) => `  ${c.category.padEnd(15)} ${c.count} txns → $${Math.abs(c.total).toFixed(2)}`)
+    .pipe((lines: string[]) => lines.join("\n"))
+    .pipe(console.log);
+
+  // Final balance
+  const finalBalance = transactions.map((t) => t.amount).sum();
+  console.log(`\nFinal balance: $${finalBalance.toFixed(2)}`);
+});
+
+test("Morse Code Translator", () => {
+  // Bidirectional Morse code using string + array + object transforms
+  const morseTable: Record<string, string> = {
+    A: ".-",    B: "-...",  C: "-.-.",  D: "-..",   E: ".",
+    F: "..-.",  G: "--.",   H: "....",  I: "..",    J: ".---",
+    K: "-.-",   L: ".-..",  M: "--",    N: "-.",    O: "---",
+    P: ".--.",  Q: "--.-",  R: ".-.",   S: "...",   T: "-",
+    U: "..-",   V: "...-",  W: ".--",   X: "-..-",  Y: "-.--",
+    Z: "--..",  "0": "-----", "1": ".----", "2": "..---",
+    "3": "...--", "4": "....-", "5": ".....", "6": "-....",
+    "7": "--...", "8": "---..", "9": "----.",
+    " ": "/",
+  };
+
+  // Build reverse lookup using toObject
+  const reverseMorse = Object.entries(morseTable)
+    .toObject(
+      ([, code]) => code as string,
+      ([letter]) => letter,
+    ) as Record<string, string>;
+
+  const encode = (text: string): string =>
+    text.toUpperCase().chars()
+      .map((ch) => morseTable[ch] ?? ch)
+      .join(" ");
+
+  const decode = (morse: string): string =>
+    morse.split(" ")
+      .map((code) => reverseMorse[code] ?? code)
+      .join("");
+
+  const message = "Hello World";
+  const encoded = encode(message);
+  const decoded = decode(encoded);
+
+  console.log("Text:   ", message);
+  console.log("Morse:  ", encoded);
+  console.log("Decoded:", decoded);
+  console.log("Match:  ", message.toUpperCase() === decoded);
+});

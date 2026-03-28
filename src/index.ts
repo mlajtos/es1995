@@ -864,15 +864,27 @@ test("Color Conversions", () => {
   const hex = "#ff6347"; // Tomato
   const rgb = hex.toRGB();
   const hsl = hex.toHSL();
-  console.log(`${hex} → RGB:`, rgb, `→ HSL:`, hsl);
+  const oklch = hex.toOKLCH();
+  console.log(`${hex} → RGB:`, rgb, `→ HSL:`, hsl, `→ OKLCH:`, oklch);
 
   // Create colors from components
   console.log("Red:", Number.rgb(255, 0, 0));
   console.log("Pure blue HSL:", Number.hsl(240, 100, 50));
+  console.log("OKLCH mid-gray:", Number.oklch(0.5, 0, 0));
 
   // Generate a rainbow gradient
   const rainbow = Number.range(0, 360, 30).map((h) => Number.hsl(h, 100, 50));
   console.log("Rainbow:", rainbow);
+
+  // OKLCH perceptually uniform gradient (constant lightness & chroma)
+  const oklchRainbow = Number.range(0, 360, 30).map((h) => Number.oklch(0.7, 0.15, h));
+  console.log("OKLCH rainbow (perceptually uniform):", oklchRainbow);
+
+  // Compare: same hex color in all three spaces
+  const coral = "#ff7f50";
+  console.log("Coral in RGB:", coral.toRGB());
+  console.log("Coral in HSL:", coral.toHSL());
+  console.log("Coral in OKLCH:", coral.toOKLCH());
 });
 
 test("Promise Concurrency", async () => {

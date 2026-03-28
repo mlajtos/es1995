@@ -179,6 +179,8 @@ declare global {
     toRGB(): ColorRGB;
     /** Parse hex color string to HSL. */
     toHSL(): ColorHSL;
+    /** Parse hex color string to OKLCH (perceptually uniform). */
+    toOKLCH(): ColorOKLCH;
     /** Parse a query string into key-value pairs. */
     parseQueryString(): Record<string, string>;
     /** Parse duration string like "2h30m" to milliseconds. */
@@ -232,6 +234,8 @@ declare global {
     rgb(r: number, g: number, b: number): string;
     /** Create hex color from HSL. */
     hsl(h: number, s: number, l: number): string;
+    /** Create hex color from OKLCH (perceptually uniform). L: 0–1, C: 0–0.4, h: 0–360. */
+    oklch(L: number, C: number, h: number): string;
   }
 
   // ── Function ──────────────────────────────────────────────────────────
@@ -441,6 +445,7 @@ declare global {
   // ── Color ─────────────────────────────────────────────────────────────
   interface ColorRGB { r: number; g: number; b: number }
   interface ColorHSL { h: number; s: number; l: number }
+  interface ColorOKLCH { L: number; C: number; h: number }
 
   // ── Type-fest Utility Types ───────────────────────────────────────────
   type PartialDeep<T> = T extends object ? { [P in keyof T]?: PartialDeep<T[P]> } : T;
@@ -765,6 +770,59 @@ const rgbToHex = (r: number, g: number, b: number): string => {
   return "#" + [r, g, b].map((x) => Math.round(x).clamp(0, 255).toString(16).padStart(2, "0")).join("");
 };
 
+/* OKLCH color space conversions (perceptually uniform) */
+
+const linearize = (c: number): number => (c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const delinearize = (c: number): number => (c <= 0.0031308 ? c * 12.92 : 1.055 * c ** (1 / 2.4) - 0.055);
+
+const rgbToOklch = (r: number, g: number, b: number): { L: number; C: number; h: number } => {
+  const lr = linearize(r / 255);
+  const lg = linearize(g / 255);
+  const lb = linearize(b / 255);
+
+  const l_ = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m_ = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s_ = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+
+  const L = 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_;
+  const a = 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_;
+  const bOk = 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_;
+
+  const C = Math.sqrt(a * a + bOk * bOk);
+  let h = (Math.atan2(bOk, a) * 180) / Math.PI;
+  if (h < 0) h += 360;
+
+  return {
+    L: Math.round(L * 1000) / 1000,
+    C: Math.round(C * 1000) / 1000,
+    h: Math.round(h * 10) / 10,
+  };
+};
+
+const oklchToRgb = (L: number, C: number, h: number): { r: number; g: number; b: number } => {
+  const hRad = (h * Math.PI) / 180;
+  const a = C * Math.cos(hRad);
+  const bOk = C * Math.sin(hRad);
+
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * bOk;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * bOk;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * bOk;
+
+  const l = l_ * l_ * l_;
+  const m = m_ * m_ * m_;
+  const s = s_ * s_ * s_;
+
+  const lr = +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  const lg = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  const lb = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+  return {
+    r: Math.round(delinearize(Math.max(0, Math.min(1, lr))) * 255),
+    g: Math.round(delinearize(Math.max(0, Math.min(1, lg))) * 255),
+    b: Math.round(delinearize(Math.max(0, Math.min(1, lb))) * 255),
+  };
+};
+
 /*
 
     String
@@ -843,6 +901,10 @@ const StringPrototype = {
   toHSL(this: string): { h: number; s: number; l: number } {
     const { r, g, b } = hexToRgb(this);
     return rgbToHsl(r, g, b);
+  },
+  toOKLCH(this: string): { L: number; C: number; h: number } {
+    const { r, g, b } = hexToRgb(this);
+    return rgbToOklch(r, g, b);
   },
   parseQueryString(this: string): Record<string, string> {
     const str = this.replace(/^\?/, "");
@@ -1039,6 +1101,10 @@ const NumberObject = {
   },
   hsl(h: number, s: number, l: number): string {
     const { r, g, b } = hslToRgb(h, s, l);
+    return rgbToHex(r, g, b);
+  },
+  oklch(L: number, C: number, h: number): string {
+    const { r, g, b } = oklchToRgb(L, C, h);
     return rgbToHex(r, g, b);
   },
 };

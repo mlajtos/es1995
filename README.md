@@ -50,8 +50,8 @@ ES1995 enriches **every** built-in type with composable, predictable methods:
 | ----------- | ----------------------------------------- | ---------------------------------- |
 | **Object** | `pipe`, `tap`, `equals` | `clone`, `cloneDeep`, `pick`, `omit`, `deepMerge`, `deepFreeze`, `defaults`, `mapKeys`, `mapValues` |
 | **Array** | `at`, `chunk`, `compact`, `count`, `distinct`, `drop`, `duplicates`, `empty`, `except`, `first`, `flattenDeep`, `frequencies`, `groupBy`, `head`, `intersect`, `intersperse`, `last`, `max`, `min`, `average`, `pairwise`, `partition`, `reject`, `reversed`, `rotate`, `scan`, `shuffle`, `sortBy`, `sorted`, `splitAt`, `sum`, `tail`, `take`, `tap`, `toObject`, `transpose`, `uniqueBy`, `union`, `window`, `zip` | `cartesianProduct`, `zip` |
-| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `parseQueryString`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toBytes`, `toDuration`, `toHSL`, `toNumber`, `toRGB`, `truncate`, `unescapeHtml`, `words` | `uuid` |
-| **Number** | `absoluteValue`, `bytes`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toFileSize`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `hsl`, `leastCommonMultiple`, `random`, `range`, `rgb` |
+| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `parseQueryString`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toBytes`, `toDuration`, `toHSL`, `toNumber`, `toOKLCH`, `toRGB`, `truncate`, `unescapeHtml`, `words` | `uuid` |
+| **Number** | `absoluteValue`, `bytes`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toFileSize`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `hsl`, `leastCommonMultiple`, `oklch`, `random`, `range`, `rgb` |
 | **Function** | `compose`, `curry`, `debounce`, `delay`, `flip`, `memoize`, `once`, `partial`, `retry`, `throttle` | `compose`, `conditional`, `constant`, `fixedPoint`, `from`, `identity`, `isFunction`, `noop`, `pipe`, `true`, `false` |
 | **Promise** | `tap`, `timeout` | `delay`, `each`, `filter`, `map`, `props`, `retry`, `sleep` |
 | **Date** | `addDays`, `addHours`, `addMinutes`, `addMonths`, `addSeconds`, `addYears`, `age`, `clone`, `daysUntil`, `endOfDay`, `endOfMonth`, `format`, `isFuture`, `isPast`, `isSameDay`, `isToday`, `isWeekday`, `isWeekend`, `relative`, `startOfDay`, `startOfMonth` | `today`, `tomorrow`, `yesterday` |
@@ -88,8 +88,10 @@ Globally available deep utility types — no imports needed:
 | --- | --- |
 | `"#ff6347".toRGB()` | Parse hex to `{ r, g, b }` |
 | `"#ff6347".toHSL()` | Parse hex to `{ h, s, l }` |
+| `"#ff6347".toOKLCH()` | Parse hex to `{ L, C, h }` (perceptually uniform) |
 | `Number.rgb(255, 99, 71)` | Create hex from RGB |
 | `Number.hsl(9, 100, 64)` | Create hex from HSL |
+| `Number.oklch(0.7, 0.15, 30)` | Create hex from OKLCH |
 
 ## Showcase
 

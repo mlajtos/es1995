@@ -175,6 +175,21 @@ declare global {
     truncate(length: number, omission?: string): string;
     unescapeHtml(): string;
     words(): string[];
+    /** Parse hex color string to RGB. */
+    toRGB(): ColorRGB;
+    /** Parse hex color string to HSL. */
+    toHSL(): ColorHSL;
+    /** Parse a query string into key-value pairs. */
+    parseQueryString(): Record<string, string>;
+    /** Parse duration string like "2h30m" to milliseconds. */
+    toDuration(): number;
+    /** Parse byte string like "1.5 GB" to number of bytes. */
+    toBytes(): number;
+  }
+
+  interface StringConstructor {
+    /** Generate a v4 UUID. */
+    uuid(): string;
   }
 
   // ── Number ────────────────────────────────────────────────────────────
@@ -201,6 +216,10 @@ declare global {
     toHex(): string;
     toOctal(): string;
     toRoman(): string;
+    /** Format bytes as human-readable string. */
+    bytes(): string;
+    /** Format milliseconds as human-readable duration string. */
+    toFileSize(): string;
   }
 
   interface NumberConstructor {
@@ -209,6 +228,10 @@ declare global {
     leastCommonMultiple(a: number, b: number): number;
     random(lower?: number, upper?: number, floating?: boolean): number;
     range(start: number, end?: number, step?: number): number[];
+    /** Create hex color from RGB. */
+    rgb(r: number, g: number, b: number): string;
+    /** Create hex color from HSL. */
+    hsl(h: number, s: number, l: number): string;
   }
 
   // ── Function ──────────────────────────────────────────────────────────
@@ -255,6 +278,14 @@ declare global {
     delay<T = void>(ms: number, value?: T): Promise<T>;
     sleep(ms: number): Promise<void>;
     retry<T>(fn: () => Promise<T>, options?: { retries?: number; delay?: number }): Promise<T>;
+    /** Run async mapper over items with concurrency limit. */
+    map<T, R>(items: T[], fn: (item: T, index: number) => Promise<R>, options?: { concurrency?: number }): Promise<R[]>;
+    /** Run async fn for each item sequentially. */
+    each<T>(items: T[], fn: (item: T, index: number) => Promise<void>): Promise<void>;
+    /** Resolve object of promises to object of values. */
+    props<T extends Record<string, unknown>>(obj: { [K in keyof T]: Promise<T[K]> | T[K] }): Promise<T>;
+    /** Async filter with concurrency. */
+    filter<T>(items: T[], fn: (item: T, index: number) => Promise<boolean>, options?: { concurrency?: number }): Promise<T[]>;
   }
 
   // ── Date ──────────────────────────────────────────────────────────────
@@ -325,7 +356,108 @@ declare global {
     readonly ISO8601: RegExp;
     readonly URL: RegExp;
     readonly UUID: RegExp;
+    readonly queryString: RegExp;
   }
+
+  // ── Schema Validation (z) ────────────────────────────────────────────
+  interface SchemaResult<T> { success: boolean; data?: T; error?: string }
+  
+  interface ZodString {
+    min(n: number): ZodString;
+    max(n: number): ZodString;
+    email(): ZodString;
+    url(): ZodString;
+    uuid(): ZodString;
+    regex(re: RegExp): ZodString;
+    nonempty(): ZodString;
+    optional(): ZodString;
+    parse(value: unknown): string;
+    safeParse(value: unknown): SchemaResult<string>;
+  }
+  
+  interface ZodNumber {
+    min(n: number): ZodNumber;
+    max(n: number): ZodNumber;
+    int(): ZodNumber;
+    positive(): ZodNumber;
+    negative(): ZodNumber;
+    nonnegative(): ZodNumber;
+    optional(): ZodNumber;
+    parse(value: unknown): number;
+    safeParse(value: unknown): SchemaResult<number>;
+  }
+  
+  interface ZodBoolean {
+    optional(): ZodBoolean;
+    parse(value: unknown): boolean;
+    safeParse(value: unknown): SchemaResult<boolean>;
+  }
+  
+  interface ZodArray<T> {
+    min(n: number): ZodArray<T>;
+    max(n: number): ZodArray<T>;
+    nonempty(): ZodArray<T>;
+    optional(): ZodArray<T>;
+    parse(value: unknown): T[];
+    safeParse(value: unknown): SchemaResult<T[]>;
+  }
+  
+  interface ZodObject<T> {
+    optional(): ZodObject<T>;
+    parse(value: unknown): T;
+    safeParse(value: unknown): SchemaResult<T>;
+    extend<U>(shape: Record<string, unknown>): ZodObject<T & U>;
+    pick<K extends keyof T>(...keys: K[]): ZodObject<Pick<T, K>>;
+    omit<K extends keyof T>(...keys: K[]): ZodObject<Omit<T, K>>;
+  }
+  
+  interface ZodLiteral<T> {
+    parse(value: unknown): T;
+    safeParse(value: unknown): SchemaResult<T>;
+  }
+  
+  interface ZodUnion<T> {
+    parse(value: unknown): T;
+    safeParse(value: unknown): SchemaResult<T>;
+  }
+  
+  interface ZodEnum<T extends string> {
+    parse(value: unknown): T;
+    safeParse(value: unknown): SchemaResult<T>;
+    options: T[];
+  }
+
+  var z: {
+    string(): ZodString;
+    number(): ZodNumber;
+    boolean(): ZodBoolean;
+    array<T>(schema: { parse(v: unknown): T }): ZodArray<T>;
+    object<T extends Record<string, { parse(v: unknown): unknown }>>(shape: T): ZodObject<{ [K in keyof T]: ReturnType<T[K]["parse"]> }>;
+    literal<T extends string | number | boolean>(value: T): ZodLiteral<T>;
+    union<T extends { parse(v: unknown): unknown }[]>(...schemas: T): ZodUnion<ReturnType<T[number]["parse"]>>;
+    enum<T extends string>(...values: T[]): ZodEnum<T>;
+  };
+
+  // ── Color ─────────────────────────────────────────────────────────────
+  interface ColorRGB { r: number; g: number; b: number }
+  interface ColorHSL { h: number; s: number; l: number }
+
+  // ── Type-fest Utility Types ───────────────────────────────────────────
+  type PartialDeep<T> = T extends object ? { [P in keyof T]?: PartialDeep<T[P]> } : T;
+  type RequiredDeep<T> = T extends object ? { [P in keyof T]-?: RequiredDeep<T[P]> } : T;
+  type ReadonlyDeep<T> = T extends object ? { readonly [P in keyof T]: ReadonlyDeep<T[P]> } : T;
+  type SetRequired<T, K extends keyof T> = Omit<T, K> & Required<Pick<T, K>>;
+  type SetOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
+  type SetReadonly<T, K extends keyof T> = Omit<T, K> & Readonly<Pick<T, K>>;
+  type Simplify<T> = { [K in keyof T]: T[K] } & {};
+  type Merge<A, B> = Simplify<Omit<A, keyof B> & B>;
+  type ValueOf<T> = T[keyof T];
+  type Entries<T> = { [K in keyof T]: [K, T[K]] }[keyof T][];
+  type StringKeyOf<T> = Extract<keyof T, string>;
+  type Opaque<T, K extends string> = T & { readonly __brand: K };
+  type NonEmptyArray<T> = [T, ...T[]];
+  type Writable<T> = { -readonly [P in keyof T]: T[P] };
+  type WritableDeep<T> = T extends object ? { -readonly [P in keyof T]: WritableDeep<T[P]> } : T;
 }
 
 /* ──────────────────────────────────────────────────────────────────────────────
@@ -581,6 +713,60 @@ const ArrayObject = {
 
 /*
 
+    Color Conversions
+
+*/
+
+const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
+  const h = hex.replace(/^#/, "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(full, 16);
+  return { r: (n >> 16) & 255, g: (n >> 8) & 255, b: n & 255 };
+};
+
+const rgbToHsl = (r: number, g: number, b: number): { h: number; s: number; l: number } => {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  if (max === min) return { h: 0, s: 0, l: Math.round(l * 100) };
+  const d = max - min;
+  const s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+  let h = 0;
+  if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+  else if (max === g) h = ((b - r) / d + 2) / 6;
+  else h = ((r - g) / d + 4) / 6;
+  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+};
+
+const hslToRgb = (h: number, s: number, l: number): { r: number; g: number; b: number } => {
+  h /= 360; s /= 100; l /= 100;
+  if (s === 0) {
+    const v = Math.round(l * 255);
+    return { r: v, g: v, b: v };
+  }
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1 / 6) return p + (q - p) * 6 * t;
+    if (t < 1 / 2) return q;
+    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+    return p;
+  };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+  const p = 2 * l - q;
+  return {
+    r: Math.round(hue2rgb(p, q, h + 1 / 3) * 255),
+    g: Math.round(hue2rgb(p, q, h) * 255),
+    b: Math.round(hue2rgb(p, q, h - 1 / 3) * 255),
+  };
+};
+
+const rgbToHex = (r: number, g: number, b: number): string => {
+  return "#" + [r, g, b].map((x) => Math.round(x).clamp(0, 255).toString(16).padStart(2, "0")).join("");
+};
+
+/*
+
     String
 
 */
@@ -651,9 +837,49 @@ const StringPrototype = {
   words(this: string): string[] {
     return lodashWords(this.valueOf());
   },
+  toRGB(this: string): { r: number; g: number; b: number } {
+    return hexToRgb(this);
+  },
+  toHSL(this: string): { h: number; s: number; l: number } {
+    const { r, g, b } = hexToRgb(this);
+    return rgbToHsl(r, g, b);
+  },
+  parseQueryString(this: string): Record<string, string> {
+    const str = this.replace(/^\?/, "");
+    if (!str) return {};
+    return Object.fromEntries(
+      str.split("&").map((pair) => {
+        const [key, ...rest] = pair.split("=");
+        return [decodeURIComponent(key), decodeURIComponent(rest.join("="))];
+      }),
+    );
+  },
+  toDuration(this: string): number {
+    const units: Record<string, number> = { ms: 1, s: 1000, m: 60000, min: 60000, h: 3600000, d: 86400000, w: 604800000, y: 31536000000 };
+    let total = 0;
+    const re = /(\d+(?:\.\d+)?)\s*(ms|min|[smhdwy])/gi;
+    let match;
+    while ((match = re.exec(this)) !== null) {
+      total += parseFloat(match[1]) * (units[match[2].toLowerCase()] ?? 0);
+    }
+    return total;
+  },
+  toBytes(this: string): number {
+    const units: Record<string, number> = { b: 1, kb: 1024, mb: 1024 ** 2, gb: 1024 ** 3, tb: 1024 ** 4, pb: 1024 ** 5 };
+    const match = this.trim().match(/^([\d.]+)\s*([a-z]+)$/i);
+    if (!match) return NaN;
+    return parseFloat(match[1]) * (units[match[2].toLowerCase()] ?? NaN);
+  },
 };
 
-const StringObject = {};
+const StringObject = {
+  uuid(): string {
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+    });
+  },
+};
 
 /*
 
@@ -769,6 +995,16 @@ const NumberPrototype = {
     }
     return result;
   },
+  bytes(this: number): string {
+    const units = ["B", "KB", "MB", "GB", "TB", "PB"];
+    let n = Math.abs(this);
+    let i = 0;
+    while (n >= 1024 && i < units.length - 1) { n /= 1024; i++; }
+    return `${n % 1 === 0 ? n : n.toFixed(2)} ${units[i]}`;
+  },
+  toFileSize(this: number): string {
+    return (this as any).bytes();
+  },
 };
 
 const NumberObject = {
@@ -798,6 +1034,13 @@ const NumberObject = {
   },
   random,
   range,
+  rgb(r: number, g: number, b: number): string {
+    return rgbToHex(r, g, b);
+  },
+  hsl(h: number, s: number, l: number): string {
+    const { r, g, b } = hslToRgb(h, s, l);
+    return rgbToHex(r, g, b);
+  },
 };
 
 /*
@@ -956,6 +1199,7 @@ const RegexObject = {
   ISO8601: /^\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?)?$/,
   URL: /^https?:\/\/(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b[-a-zA-Z0-9()@:%_+.~#?&/=]*$/,
   UUID: /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+  queryString: /^([^=&]+=[^&]*&)*[^=&]+=[^&]*$/,
 };
 
 /*
@@ -1003,6 +1247,31 @@ const PromiseObject = {
       }
       throw lastError;
     })();
+  },
+  async map<T, R>(items: T[], fn: (item: T, index: number) => Promise<R>, { concurrency = Infinity } = {}): Promise<R[]> {
+    if (concurrency === Infinity) return Promise.all(items.map(fn));
+    const results: R[] = new Array(items.length);
+    let idx = 0;
+    const run = async (): Promise<void> => {
+      while (idx < items.length) {
+        const i = idx++;
+        results[i] = await fn(items[i], i);
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => run()));
+    return results;
+  },
+  async each<T>(items: T[], fn: (item: T, index: number) => Promise<void>): Promise<void> {
+    for (let i = 0; i < items.length; i++) await fn(items[i], i);
+  },
+  async props<T extends Record<string, unknown>>(obj: Record<string, unknown>): Promise<T> {
+    const keys = Object.keys(obj);
+    const values = await Promise.all(keys.map((k) => Promise.resolve(obj[k])));
+    return Object.fromEntries(keys.map((k, i) => [k, values[i]])) as T;
+  },
+  async filter<T>(items: T[], fn: (item: T, index: number) => Promise<boolean>, { concurrency = Infinity } = {}): Promise<T[]> {
+    const results = await (Promise as any).map(items, async (item: T, i: number) => ({ item, keep: await fn(item, i) }), { concurrency });
+    return results.filter((r: { keep: boolean }) => r.keep).map((r: { item: T }) => r.item);
   },
 };
 
@@ -1246,6 +1515,223 @@ const ErrorPrototype = {
     };
   },
 };
+
+/*
+
+    Schema Validation (z)
+
+*/
+
+class ZodValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "ZodValidationError";
+  }
+}
+
+type Check = (value: unknown) => string | null;
+
+const createSchema = <T>(baseCheck: Check, checks: Check[] = []) => {
+  const allChecks = [baseCheck, ...checks];
+  
+  const validate = (value: unknown): { success: boolean; data?: T; error?: string } => {
+    for (const check of allChecks) {
+      const error = check(value);
+      if (error) return { success: false, error };
+    }
+    return { success: true, data: value as T };
+  };
+
+  return {
+    parse(value: unknown): T {
+      const result = validate(value);
+      if (!result.success) throw new ZodValidationError(result.error!);
+      return result.data!;
+    },
+    safeParse(value: unknown) {
+      return validate(value);
+    },
+    _checks: allChecks,
+    _baseCheck: baseCheck,
+  };
+};
+
+const addCheck = <S extends ReturnType<typeof createSchema>>(schema: S, check: Check): S => {
+  return { ...schema, ...createSchema(schema._baseCheck, [...schema._checks.slice(1), check]) } as S;
+};
+
+const zImpl = {
+  string() {
+    const base = createSchema<string>((v) => typeof v === "string" ? null : `Expected string, got ${typeof v}`);
+    const chain = {
+      ...base,
+      min: (n: number) => addStringChain(addCheck(base, (v) => (v as string).length >= n ? null : `String must be at least ${n} characters`)),
+      max: (n: number) => addStringChain(addCheck(base, (v) => (v as string).length <= n ? null : `String must be at most ${n} characters`)),
+      email: () => addStringChain(addCheck(base, (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v as string) ? null : "Invalid email")),
+      url: () => addStringChain(addCheck(base, (v) => { try { new URL(v as string); return null; } catch { return "Invalid URL"; } })),
+      uuid: () => addStringChain(addCheck(base, (v) => RegExp.UUID.test(v as string) ? null : "Invalid UUID")),
+      regex: (re: RegExp) => addStringChain(addCheck(base, (v) => re.test(v as string) ? null : `Does not match ${re}`)),
+      nonempty: () => addStringChain(addCheck(base, (v) => (v as string).length > 0 ? null : "String must not be empty")),
+      optional: () => {
+        const optBase = createSchema<string | undefined>((v) => v === undefined || typeof v === "string" ? null : `Expected string or undefined, got ${typeof v}`, base._checks.slice(1));
+        return { ...optBase, ...chain };
+      },
+    };
+    return chain;
+
+    function addStringChain(s: any) {
+      return {
+        ...s,
+        min: (n: number) => addStringChain(addCheck(s, (v) => (v as string).length >= n ? null : `String must be at least ${n} characters`)),
+        max: (n: number) => addStringChain(addCheck(s, (v) => (v as string).length <= n ? null : `String must be at most ${n} characters`)),
+        email: () => addStringChain(addCheck(s, (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v as string) ? null : "Invalid email")),
+        url: () => addStringChain(addCheck(s, (v) => { try { new URL(v as string); return null; } catch { return "Invalid URL"; } })),
+        uuid: () => addStringChain(addCheck(s, (v) => RegExp.UUID.test(v as string) ? null : "Invalid UUID")),
+        regex: (re: RegExp) => addStringChain(addCheck(s, (v) => re.test(v as string) ? null : `Does not match ${re}`)),
+        nonempty: () => addStringChain(addCheck(s, (v) => (v as string).length > 0 ? null : "String must not be empty")),
+        optional: () => {
+          const optBase = createSchema<string | undefined>((v) => v === undefined || typeof v === "string" ? null : `Expected string or undefined, got ${typeof v}`, s._checks.slice(1));
+          return { ...optBase, ...s };
+        },
+      };
+    }
+  },
+
+  number() {
+    const base = createSchema<number>((v) => typeof v === "number" && !Number.isNaN(v) ? null : `Expected number, got ${typeof v}`);
+    const chain = {
+      ...base,
+      min: (n: number) => addNumberChain(addCheck(base, (v) => (v as number) >= n ? null : `Number must be >= ${n}`)),
+      max: (n: number) => addNumberChain(addCheck(base, (v) => (v as number) <= n ? null : `Number must be <= ${n}`)),
+      int: () => addNumberChain(addCheck(base, (v) => Number.isInteger(v) ? null : "Expected integer")),
+      positive: () => addNumberChain(addCheck(base, (v) => (v as number) > 0 ? null : "Expected positive number")),
+      negative: () => addNumberChain(addCheck(base, (v) => (v as number) < 0 ? null : "Expected negative number")),
+      nonnegative: () => addNumberChain(addCheck(base, (v) => (v as number) >= 0 ? null : "Expected non-negative number")),
+      optional: () => {
+        const optBase = createSchema<number | undefined>((v) => v === undefined || (typeof v === "number" && !Number.isNaN(v)) ? null : `Expected number or undefined`);
+        return { ...optBase, ...chain };
+      },
+    };
+    return chain;
+
+    function addNumberChain(s: any) {
+      return {
+        ...s,
+        min: (n: number) => addNumberChain(addCheck(s, (v) => (v as number) >= n ? null : `Number must be >= ${n}`)),
+        max: (n: number) => addNumberChain(addCheck(s, (v) => (v as number) <= n ? null : `Number must be <= ${n}`)),
+        int: () => addNumberChain(addCheck(s, (v) => Number.isInteger(v) ? null : "Expected integer")),
+        positive: () => addNumberChain(addCheck(s, (v) => (v as number) > 0 ? null : "Expected positive number")),
+        negative: () => addNumberChain(addCheck(s, (v) => (v as number) < 0 ? null : "Expected negative number")),
+        nonnegative: () => addNumberChain(addCheck(s, (v) => (v as number) >= 0 ? null : "Expected non-negative number")),
+        optional: () => {
+          const optBase = createSchema<number | undefined>((v) => v === undefined || (typeof v === "number" && !Number.isNaN(v)) ? null : `Expected number or undefined`);
+          return { ...optBase, ...s };
+        },
+      };
+    }
+  },
+
+  boolean() {
+    const base = createSchema<boolean>((v) => typeof v === "boolean" ? null : `Expected boolean, got ${typeof v}`);
+    return {
+      ...base,
+      optional() {
+        return createSchema<boolean | undefined>((v) => v === undefined || typeof v === "boolean" ? null : `Expected boolean or undefined`);
+      },
+    };
+  },
+
+  array<T>(itemSchema: { parse(v: unknown): T; safeParse(v: unknown): { success: boolean; error?: string } }) {
+    const base = createSchema<T[]>((v) => {
+      if (!Array.isArray(v)) return `Expected array, got ${typeof v}`;
+      for (let i = 0; i < v.length; i++) {
+        const r = itemSchema.safeParse(v[i]);
+        if (!r.success) return `[${i}]: ${r.error}`;
+      }
+      return null;
+    });
+    const chain = {
+      ...base,
+      min: (n: number) => addArrayChain(addCheck(base, (v) => (v as unknown[]).length >= n ? null : `Array must have at least ${n} items`)),
+      max: (n: number) => addArrayChain(addCheck(base, (v) => (v as unknown[]).length <= n ? null : `Array must have at most ${n} items`)),
+      nonempty: () => addArrayChain(addCheck(base, (v) => (v as unknown[]).length > 0 ? null : "Array must not be empty")),
+      optional: () => {
+        const optBase = createSchema<T[] | undefined>((v) => v === undefined ? null : base._baseCheck(v));
+        return { ...optBase, ...chain };
+      },
+    };
+    return chain;
+
+    function addArrayChain(s: any) {
+      return {
+        ...s,
+        min: (n: number) => addArrayChain(addCheck(s, (v) => (v as unknown[]).length >= n ? null : `Array must have at least ${n} items`)),
+        max: (n: number) => addArrayChain(addCheck(s, (v) => (v as unknown[]).length <= n ? null : `Array must have at most ${n} items`)),
+        nonempty: () => addArrayChain(addCheck(s, (v) => (v as unknown[]).length > 0 ? null : "Array must not be empty")),
+        optional: () => {
+          const optBase = createSchema<T[] | undefined>((v) => v === undefined ? null : s._baseCheck(v));
+          return { ...optBase, ...s };
+        },
+      };
+    }
+  },
+
+  object<T extends Record<string, { parse(v: unknown): unknown; safeParse(v: unknown): { success: boolean; error?: string } }>>(shape: T) {
+    type Out = { [K in keyof T]: ReturnType<T[K]["parse"]> };
+    const keys = Object.keys(shape);
+    const base = createSchema<Out>((v) => {
+      if (typeof v !== "object" || v === null || Array.isArray(v)) return `Expected object, got ${typeof v}`;
+      const obj = v as Record<string, unknown>;
+      for (const key of keys) {
+        const r = shape[key].safeParse(obj[key]);
+        if (!r.success) return `${key}: ${r.error}`;
+      }
+      return null;
+    });
+    return {
+      ...base,
+      optional() {
+        return createSchema<Out | undefined>((v) => v === undefined ? null : base._baseCheck(v));
+      },
+      extend(extra: Record<string, { parse(v: unknown): unknown; safeParse(v: unknown): { success: boolean; error?: string } }>) {
+        return zImpl.object({ ...shape, ...extra });
+      },
+      pick(...pickKeys: string[]) {
+        const picked: Record<string, unknown> = {};
+        for (const k of pickKeys) if (k in shape) picked[k] = shape[k];
+        return zImpl.object(picked as any);
+      },
+      omit(...omitKeys: string[]) {
+        const remaining: Record<string, unknown> = {};
+        for (const k of keys) if (!omitKeys.includes(k)) remaining[k] = shape[k];
+        return zImpl.object(remaining as any);
+      },
+    };
+  },
+
+  literal<T extends string | number | boolean>(expected: T) {
+    return createSchema<T>((v) => v === expected ? null : `Expected ${JSON.stringify(expected)}, got ${JSON.stringify(v)}`);
+  },
+
+  union(...schemas: { parse(v: unknown): unknown; safeParse(v: unknown): { success: boolean; error?: string } }[]) {
+    return createSchema<unknown>((v) => {
+      const errors: string[] = [];
+      for (const schema of schemas) {
+        const r = schema.safeParse(v);
+        if (r.success) return null;
+        errors.push(r.error!);
+      }
+      return `No matching schema: ${errors.join("; ")}`;
+    });
+  },
+
+  enum(...values: string[]) {
+    const schema = createSchema<string>((v) => typeof v === "string" && values.includes(v) ? null : `Expected one of ${values.join(", ")}, got ${JSON.stringify(v)}`);
+    return { ...schema, options: values };
+  },
+};
+
+(globalThis as any).z = zImpl;
 
 /*
 

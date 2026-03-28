@@ -809,3 +809,170 @@ test("Morse Code Translator", () => {
   console.log("Decoded:", decoded);
   console.log("Match:  ", message.toUpperCase() === decoded);
 });
+
+/*
+
+    New Feature Showcases
+
+*/
+
+test("Schema Validation (z)", () => {
+  const UserSchema = z.object({
+    name: z.string().min(2).max(50),
+    email: z.string().email(),
+    age: z.number().int().positive(),
+    role: z.enum("admin", "user", "viewer"),
+    tags: z.array(z.string()).nonempty(),
+  });
+
+  const good = UserSchema.safeParse({
+    name: "Alice",
+    email: "alice@example.com",
+    age: 30,
+    role: "admin",
+    tags: ["dev", "lead"],
+  });
+  console.log("Valid user:", good);
+
+  const bad = UserSchema.safeParse({
+    name: "A",
+    email: "not-an-email",
+    age: -5,
+    role: "hacker",
+    tags: [],
+  });
+  console.log("Invalid user:", bad);
+
+  // Composable schemas
+  const PublicUser = UserSchema.omit("email");
+  console.log("Public user:", PublicUser.safeParse({
+    name: "Bob",
+    age: 25,
+    role: "user",
+    tags: ["reader"],
+  }));
+});
+
+test("UUID Generation", () => {
+  const ids = (5).times(() => String.uuid());
+  console.log("UUIDs:", ids);
+  console.log("All valid:", ids.every((id: string) => RegExp.UUID.test(id)));
+});
+
+test("Color Conversions", () => {
+  // Hex → RGB → HSL round-trip
+  const hex = "#ff6347"; // Tomato
+  const rgb = hex.toRGB();
+  const hsl = hex.toHSL();
+  console.log(`${hex} → RGB:`, rgb, `→ HSL:`, hsl);
+
+  // Create colors from components
+  console.log("Red:", Number.rgb(255, 0, 0));
+  console.log("Pure blue HSL:", Number.hsl(240, 100, 50));
+
+  // Generate a rainbow gradient
+  const rainbow = Number.range(0, 360, 30).map((h) => Number.hsl(h, 100, 50));
+  console.log("Rainbow:", rainbow);
+});
+
+test("Promise Concurrency", async () => {
+  const fakeFetch = async (id: number): Promise<string> => {
+    await Promise.sleep(10);
+    return `Result-${id}`;
+  };
+
+  // Map with concurrency limit
+  const results = await Promise.map(
+    Number.range(1, 6),
+    (id) => fakeFetch(id),
+    { concurrency: 2 },
+  );
+  console.log("Promise.map:", results);
+
+  // Resolve an object of promises
+  const data = await Promise.props({
+    user: Promise.resolve({ name: "Alice" }),
+    posts: Promise.resolve([1, 2, 3]),
+    count: Promise.resolve(42),
+  });
+  console.log("Promise.props:", data);
+
+  // Filter with async predicate
+  const evens = await Promise.filter(
+    Number.range(1, 11),
+    async (n) => n % 2 === 0,
+  );
+  console.log("Async evens:", evens);
+});
+
+test("Duration & Byte Parsing", () => {
+  // Parse duration strings
+  console.log('"2h30m" =', "2h30m".toDuration(), "ms");
+  console.log('"1d12h" =', "1d12h".toDuration().duration());
+  console.log('"500ms" =', "500ms".toDuration(), "ms");
+
+  // Format / parse bytes
+  console.log("1.5 GB =", "1.5 GB".toBytes(), "bytes");
+  console.log("Format:", (1536000).bytes());
+  console.log("Round-trip:", "2.5 MB".toBytes().bytes());
+});
+
+test("Query String", () => {
+  const qs = "name=Alice&age=30&city=New%20York";
+  console.log("Parsed:", qs.parseQueryString());
+  console.log("Valid?", RegExp.queryString.test(qs));
+  console.log("URL query:", "?foo=bar&baz=42".parseQueryString());
+});
+
+test("Type-fest: Branded Types (Opaque)", () => {
+  // Opaque / branded types prevent mixing up IDs
+  type UserId = Opaque<string, "UserId">;
+  type PostId = Opaque<string, "PostId">;
+
+  const createUser = (name: string): { id: UserId; name: string } => ({
+    id: String.uuid() as UserId,
+    name,
+  });
+
+  const createPost = (title: string, authorId: UserId): { id: PostId; title: string; authorId: UserId } => ({
+    id: String.uuid() as PostId,
+    title,
+    authorId,
+  });
+
+  const user = createUser("Alice");
+  const post = createPost("Hello World", user.id);
+  // post.authorId = post.id; // ← Would be a compile-time error! PostId ≠ UserId
+
+  console.log("User:", user);
+  console.log("Post:", post);
+  console.log("IDs are different branded types — the compiler keeps us safe!");
+});
+
+test("Type-fest: Deep Partial Config", () => {
+  // PartialDeep lets you override just the nested pieces you care about
+  interface AppConfig {
+    server: { host: string; port: number; ssl: { cert: string; key: string } };
+    database: { url: string; pool: { min: number; max: number } };
+    features: string[];
+  }
+
+  const defaults: AppConfig = {
+    server: { host: "localhost", port: 3000, ssl: { cert: "", key: "" } },
+    database: { url: "sqlite://dev.db", pool: { min: 2, max: 10 } },
+    features: ["auth", "logging"],
+  };
+
+  // Only override what you need — deeply!
+  const overrides: PartialDeep<AppConfig> = {
+    server: { port: 8080, ssl: { cert: "/path/to/cert" } },
+    database: { pool: { max: 50 } },
+  };
+
+  // Deep merge to get the final config
+  const config = Object.deepMerge(defaults, overrides);
+  console.log("Merged config:", config);
+  console.log("Port overridden:", (config as any).server.port === 8080);
+  console.log("Pool max:", (config as any).database.pool.max === 50);
+  console.log("Host kept:", (config as any).server.host === "localhost");
+});

@@ -50,16 +50,46 @@ ES1995 enriches **every** built-in type with composable, predictable methods:
 | ----------- | ----------------------------------------- | ---------------------------------- |
 | **Object** | `pipe`, `tap`, `equals` | `clone`, `cloneDeep`, `pick`, `omit`, `deepMerge`, `deepFreeze`, `defaults`, `mapKeys`, `mapValues` |
 | **Array** | `at`, `chunk`, `compact`, `count`, `distinct`, `drop`, `duplicates`, `empty`, `except`, `first`, `flattenDeep`, `frequencies`, `groupBy`, `head`, `intersect`, `intersperse`, `last`, `max`, `min`, `average`, `pairwise`, `partition`, `reject`, `reversed`, `rotate`, `scan`, `shuffle`, `sortBy`, `sorted`, `splitAt`, `sum`, `tail`, `take`, `tap`, `toObject`, `transpose`, `uniqueBy`, `union`, `window`, `zip` | `cartesianProduct`, `zip` |
-| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toNumber`, `truncate`, `unescapeHtml`, `words` | |
-| **Number** | `absoluteValue`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `leastCommonMultiple`, `random`, `range` |
+| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `parseQueryString`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toBytes`, `toDuration`, `toHSL`, `toNumber`, `toRGB`, `truncate`, `unescapeHtml`, `words` | `uuid` |
+| **Number** | `absoluteValue`, `bytes`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toFileSize`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `hsl`, `leastCommonMultiple`, `random`, `range`, `rgb` |
 | **Function** | `compose`, `curry`, `debounce`, `delay`, `flip`, `memoize`, `once`, `partial`, `retry`, `throttle` | `compose`, `conditional`, `constant`, `fixedPoint`, `from`, `identity`, `isFunction`, `noop`, `pipe`, `true`, `false` |
-| **Promise** | `tap`, `timeout` | `delay`, `sleep`, `retry` |
+| **Promise** | `tap`, `timeout` | `delay`, `each`, `filter`, `map`, `props`, `retry`, `sleep` |
 | **Date** | `addDays`, `addHours`, `addMinutes`, `addMonths`, `addSeconds`, `addYears`, `age`, `clone`, `daysUntil`, `endOfDay`, `endOfMonth`, `format`, `isFuture`, `isPast`, `isSameDay`, `isToday`, `isWeekday`, `isWeekend`, `relative`, `startOfDay`, `startOfMonth` | `today`, `tomorrow`, `yesterday` |
 | **Math** | | `average`, `degreesToRadians`, `factorial`, `fibonacci`, `inverseLerp`, `isPrime`, `lerp`, `radiansToDegrees`, `sum` |
 | **JSON** | | `safeParse` |
 | **Error** | `toJSON` | |
 | **Symbol** | | `callable`, `documentation` |
-| **RegExp** | | `email`, `hexColor`, `IPv4`, `ISO8601`, `URL`, `UUID` |
+| **RegExp** | | `email`, `hexColor`, `IPv4`, `ISO8601`, `queryString`, `URL`, `UUID` |
+
+### Schema Validation (`z` global)
+
+A lightweight, Zod-inspired schema validator — zero dependencies, full chainability:
+
+| Method | Description |
+| --- | --- |
+| `z.string()` | String schema with `.min()`, `.max()`, `.email()`, `.url()`, `.uuid()`, `.regex()`, `.nonempty()`, `.optional()` |
+| `z.number()` | Number schema with `.min()`, `.max()`, `.int()`, `.positive()`, `.negative()`, `.nonnegative()`, `.optional()` |
+| `z.boolean()` | Boolean schema with `.optional()` |
+| `z.array(schema)` | Array schema with `.min()`, `.max()`, `.nonempty()`, `.optional()` |
+| `z.object(shape)` | Object schema with `.extend()`, `.pick()`, `.omit()`, `.optional()` |
+| `z.literal(value)` | Literal value schema |
+| `z.union(...schemas)` | Union schema |
+| `z.enum(...values)` | Enum schema |
+
+### Type-fest Utility Types
+
+Globally available deep utility types — no imports needed:
+
+`PartialDeep`, `RequiredDeep`, `ReadonlyDeep`, `SetRequired`, `SetOptional`, `SetReadonly`, `Simplify`, `Merge`, `ValueOf`, `Entries`, `StringKeyOf`, `Opaque`, `NonEmptyArray`, `Writable`, `WritableDeep`
+
+### Color Conversions
+
+| Method | Description |
+| --- | --- |
+| `"#ff6347".toRGB()` | Parse hex to `{ r, g, b }` |
+| `"#ff6347".toHSL()` | Parse hex to `{ h, s, l }` |
+| `Number.rgb(255, 99, 71)` | Create hex from RGB |
+| `Number.hsl(9, 100, 64)` | Create hex from HSL |
 
 ## Showcase
 

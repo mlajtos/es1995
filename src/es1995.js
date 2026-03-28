@@ -402,7 +402,9 @@ const NumberPrototype = {
     return floor(this, precision);
   },
   fractionalPart() {
-    return parseFloat("0." + (this + "").split(".")[1]);
+    const parts = (this + "").split(".");
+    if (parts.length < 2) return 0;
+    return parseFloat("0." + parts[1]);
   },
   integerPart() {
     return Math.abs(Math.trunc(this));

@@ -1,44 +1,46 @@
 # ES1995 – The LAST Polyfill
 
-ES1995 is the only JS polyfill you'll ever need. A coherent set of composable primitives that span the whole stack – with an API surface that is predictable and smooth. The JavaScript as the LAST language.
+ES1995 is the only JS/TS polyfill you'll ever need. A coherent set of composable primitives that span the whole stack – with an API surface that is predictable and smooth. JavaScript: Batteries Included.
+
+Written in TypeScript with first-class type declarations for a smooth editor experience.
 
 ## What people said about ES1995
 
 > [Brendan Eich](https://twitter.com/BrendanEich):
 >
-> “I did JS in 10 days. If I had one more day, ES1995 would be there from the start.”
+> "I did JS in 10 days. If I had one more day, ES1995 would be there from the start."
 
 > [Alan Kay](https://en.wikiquote.org/wiki/Alan_Kay):
 >
-> “[…][…] The Web in comparison [to the Internet] is a joke. The Web was done by amateurs. […] JS is pile of bricks with limestone on top. […] To be precise, in case of ES1995, a change in perspective is worth **negative** 80 IQ points. […][…] […]”
+> "[…][…] The Web in comparison [to the Internet] is a joke. The Web was done by amateurs. […] JS is pile of bricks with limestone on top. […] To be precise, in case of ES1995, a change in perspective is worth **negative** 80 IQ points. […][…] […]"
 
 > [Sebastian Mackenzie](https://twitter.com/sebmck):
 >
-> “If we had ES1995, [Rome](https://github.com/rome/tools) **would** be build in a day. Maybe less.”
+> "If we had ES1995, [Rome](https://github.com/rome/tools) **would** be build in a day. Maybe less."
 
 > [Joe Armstrong](https://twitter.com/joeerl):
 >
-> “Discovered that I can speak tweets by pressing the microphone button and it gets it right most of the time this is amazing and saves a lot of time.
+> "Discovered that I can speak tweets by pressing the microphone button and it gets it right most of the time this is amazing and saves a lot of time.
 >
 > One thing puzzles me.
 >
-> How did they fit the stenographer inside the phone?”
+> How did they fit the stenographer inside the phone?"
 
 > [Alan Turing](https://en.wikipedia.org/wiki/Alan_Turing):
 >
-> “[TC39](https://tc39.es) can only see a short distance ahead, but they can see plenty there that needs to be done.”
+> "[TC39](https://tc39.es) can only see a short distance ahead, but they can see plenty there that needs to be done."
 
 > [Elon Musk](https://twitter.com/elonmusk):
 >
-> “If JS was like this from the start, humans would dominate the whole galaxy and we would have quantum-resistant Bitcoin with instant transactions running on Neuralink. \*\*nodding\*\* ”
+> "If JS was like this from the start, humans would dominate the whole galaxy and we would have quantum-resistant Bitcoin with instant transactions running on Neuralink. \*\*nodding\*\* "
 
 > [Steve Ballmer](https://www.youtube.com/watch?v=KMU0tzLwhbE):
 >
-> [“DEVELOPERS DEVELOPERS DEVELOPERS”](https://www.youtube.com/watch?v=KMU0tzLwhbE)
+> ["DEVELOPERS DEVELOPERS DEVELOPERS"](https://www.youtube.com/watch?v=KMU0tzLwhbE)
 
 > [God](https://xkcd.com/224/):
 >
-> “I was looking for a replacement for [Perl](https://xkcd.com/224/) and JS with ES1995 looks pretty slick!”
+> "I was looking for a replacement for [Perl](https://xkcd.com/224/) and JS with ES1995 looks pretty slick!"
 
 ## Primitives
 
@@ -47,13 +49,13 @@ ES1995 enriches **every** built-in type with composable, predictable methods:
 | Primitive | Prototype Methods | Static Methods |
 | ----------- | ----------------------------------------- | ---------------------------------- |
 | **Object** | `pipe`, `tap`, `equals` | `clone`, `cloneDeep`, `pick`, `omit`, `deepMerge`, `deepFreeze`, `defaults`, `mapKeys`, `mapValues` |
-| **Array** | `at`, `chunk`, `compact`, `count`, `distinct`, `drop`, `duplicates`, `empty`, `except`, `first`, `flattenDeep`, `frequencies`, `groupBy`, `head`, `intersect`, `last`, `max`, `min`, `average`, `partition`, `reject`, `reversed`, `rotate`, `scan`, `shuffle`, `sortBy`, `sorted`, `splitAt`, `sum`, `tail`, `take`, `tap`, `toObject`, `uniqueBy`, `union`, `window`, `zip` | `cartesianProduct`, `zip` |
-| **String** | `camelCase`, `capitalize`, `chars`, `dedent`, `escapeHtml`, `isBlank`, `kebabCase`, `lines`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `toNumber`, `truncate`, `unescapeHtml`, `words` | |
-| **Number** | `absoluteValue`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toHex`, `toOctal` | `fibonacci`, `greatestCommonDivisor`, `leastCommonMultiple`, `random`, `range` |
+| **Array** | `at`, `chunk`, `compact`, `count`, `distinct`, `drop`, `duplicates`, `empty`, `except`, `first`, `flattenDeep`, `frequencies`, `groupBy`, `head`, `intersect`, `intersperse`, `last`, `max`, `min`, `average`, `pairwise`, `partition`, `reject`, `reversed`, `rotate`, `scan`, `shuffle`, `sortBy`, `sorted`, `splitAt`, `sum`, `tail`, `take`, `tap`, `toObject`, `transpose`, `uniqueBy`, `union`, `window`, `zip` | `cartesianProduct`, `zip` |
+| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toNumber`, `truncate`, `unescapeHtml`, `words` | |
+| **Number** | `absoluteValue`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `leastCommonMultiple`, `random`, `range` |
 | **Function** | `compose`, `curry`, `debounce`, `delay`, `flip`, `memoize`, `once`, `partial`, `retry`, `throttle` | `compose`, `conditional`, `constant`, `fixedPoint`, `from`, `identity`, `isFunction`, `noop`, `pipe`, `true`, `false` |
 | **Promise** | `tap`, `timeout` | `delay`, `sleep`, `retry` |
 | **Date** | `addDays`, `addHours`, `addMinutes`, `addMonths`, `addSeconds`, `addYears`, `age`, `clone`, `daysUntil`, `endOfDay`, `endOfMonth`, `format`, `isFuture`, `isPast`, `isSameDay`, `isToday`, `isWeekday`, `isWeekend`, `relative`, `startOfDay`, `startOfMonth` | `today`, `tomorrow`, `yesterday` |
-| **Math** | | `average`, `degreesToRadians`, `factorial`, `fibonacci`, `isPrime`, `lerp`, `mapRange`, `radiansToDegrees`, `sum` |
+| **Math** | | `average`, `degreesToRadians`, `factorial`, `fibonacci`, `inverseLerp`, `isPrime`, `lerp`, `radiansToDegrees`, `sum` |
 | **JSON** | | `safeParse` |
 | **Error** | `toJSON` | |
 | **Symbol** | | `callable`, `documentation` |
@@ -63,16 +65,16 @@ ES1995 enriches **every** built-in type with composable, predictable methods:
 
 ### Fancy FizzBuzz
 
-```js
+```ts
 Number.range(1, 101)
   .map(
     Function.conditional([
       // 15 === Number.leastCommonMultiple(3, 5)
-      [(n) => n.multipleOf(15), () => "FizzBuzz"],
-      [(n) => n.multipleOf(5), () => "Buzz"],
-      [(n) => n.multipleOf(3), () => "Fizz"],
-      [Function.true, Function.identity]
-    ])
+      [(n: number) => n.multipleOf(15), () => "FizzBuzz"],
+      [(n: number) => n.multipleOf(5), () => "Buzz"],
+      [(n: number) => n.multipleOf(3), () => "Fizz"],
+      [Function.true, Function.identity],
+    ]),
   )
   .join(", ")
   .pipe(console.log);
@@ -80,13 +82,13 @@ Number.range(1, 101)
 
 ### Functional Objects
 
-```js
+```ts
 const count = Function.from({
   state: 0,
   [Symbol.callable]() {
     this.state += 1;
     return this.state;
-  }
+  },
 });
 
 count().pipe(console.log);
@@ -96,7 +98,7 @@ count().pipe(console.log);
 
 ### Number decomposition
 
-```js
+```ts
 const n = -23.47;
 const [s, i, f] = [n.sign(), n.integerPart(), n.fractionalPart()];
 const m = s * (i + f);
@@ -106,7 +108,7 @@ console.assert(n === m);
 
 ### Array manipulation – Texas Hold'em
 
-```js
+```ts
 const suits = "♠♥♦♣".split("");
 const ranks = [...Number.range(2, 11), ..."JQKA".split("")];
 
@@ -130,7 +132,7 @@ let flop, turn, river;
 
 const game = {
   hands,
-  community: { flop, turn, river }
+  community: { flop, turn, river },
 };
 
 console.log(game);
@@ -138,8 +140,8 @@ console.log(game);
 
 ### Merge Sort
 
-```js
-const mergeSort = (L) =>
+```ts
+const mergeSort = (L: number[]): number[] =>
   L.length <= 1
     ? L
     : L.splitAt(L.length / 2)
@@ -149,27 +151,129 @@ const mergeSort = (L) =>
 const merge = Function.conditional([
   [(A, B) => A.empty() || B.empty(), (A, B) => A.concat(B)],
   [([a], [b]) => a < b, ([a, ...A], B) => [a, ...merge(A, B)]],
-  [Function.true, (A, B) => merge(B, A)] // ba-dum-ts
+  [Function.true, (A, B) => merge(B, A)], // ba-dum-ts
 ]);
 
 Number.range(10).shuffle().pipe(mergeSort).pipe(console.log);
 ```
 
+### Color Interpolation – Temperature Gradient
+
+Map temperatures to a cold-to-hot gradient using `Math.lerp` & `Math.inverseLerp`:
+
+```ts
+const coldColor = [66, 133, 244];   // #4285F4 (cold blue)
+const hotColor  = [234, 67, 53];    // #EA4335 (hot red)
+
+const temperatures = [18, 22, 35, 15, 28, 31, 20];
+const [tMin, tMax] = [temperatures.min(), temperatures.max()];
+
+temperatures
+  .map((temp) => {
+    const t = Math.inverseLerp(tMin, tMax, temp);           // normalize 0–1
+    const rgb = coldColor.zip(hotColor)
+      .map(([c, h]) => Math.lerp(c, h, t).round(0));       // interpolate each channel
+    return { temp: `${temp}°C`, t: t.round(2), color: `rgb(${rgb.join(",")})` };
+  })
+  .sortBy("temp")
+  .pipe(console.log);
+
+// { temp: "15°C", t: 0,    color: "rgb(66,133,244)"  }   ← cold blue
+// { temp: "22°C", t: 0.35, color: "rgb(125,110,177)" }
+// { temp: "35°C", t: 1,    color: "rgb(234,67,53)"   }   ← hot red
+```
+
+### Student Grade Report
+
+```ts
+const students = [
+  { name: "Alice",   scores: [92, 88, 95, 87] },
+  { name: "Bob",     scores: [78, 82, 71, 85] },
+  { name: "Charlie", scores: [95, 97, 93, 98] },
+  { name: "Diana",   scores: [65, 72, 68, 74] },
+  { name: "Eve",     scores: [88, 91, 84, 90] },
+];
+
+students
+  .map((s) => ({
+    ...s,
+    avg:   s.scores.average().round(1),
+    best:  s.scores.max(),
+    worst: s.scores.min(),
+  }))
+  .sortBy("avg")
+  .reversed()
+  .map((s, i) => `${(i + 1).ordinal()} ${s.name}: ${s.avg} (${s.worst}–${s.best})`)
+  .intersperse("---")
+  .pipe((lines) => lines.join("\n"))
+  .pipe(console.log);
+
+// 1st Charlie: 95.75 (93–98)
+// ---
+// 2nd Alice: 90.5 (87–95)
+// ---
+// 3rd Eve: 88.25 (84–91)
+// ---
+// 4th Bob: 79 (71–85)
+// ---
+// 5th Diana: 69.75 (65–74)
+```
+
+### Word Frequency Analysis
+
+```ts
+const text = `To be or not to be that is the question
+Whether tis nobler in the mind to suffer
+The slings and arrows of outrageous fortune
+Or to take arms against a sea of troubles`;
+
+text
+  .toLowerCase()
+  .words()
+  .frequencies()
+  .pipe(Object.entries)
+  .sorted(([, a], [, b]) => b - a)
+  .take(8)
+  .map(([word, count]) => `${word}: ${"█".repeat(count)} (${count})`)
+  .pipe((lines) => lines.join("\n"))
+  .pipe(console.log);
+
+// to: ████ (4)
+// the: ██ (2)
+// of: ██ (2)
+// be: ██ (2)
+// ...
+```
+
+### Roman Numeral Timeline
+
+```ts
+const milestones = [
+  { year: 1995, event: "JavaScript created by Brendan Eich" },
+  { year: 1997, event: "ECMAScript 1 standardized" },
+  { year: 2009, event: "Node.js released" },
+  { year: 2015, event: "ES6/ES2015 – the big leap" },
+  { year: 2026, event: "ES1995 becomes the LAST polyfill" },
+];
+
+milestones
+  .map((m) => `${m.year.toRoman()} (${m.year}) – ${m.event}`)
+  .pipe((lines) => lines.join("\n"))
+  .pipe(console.log);
+
+// MCMXCV (1995) – JavaScript created by Brendan Eich
+// MCMXCVII (1997) – ECMAScript 1 standardized
+// MMIX (2009) – Node.js released
+// MMXV (2015) – ES6/ES2015 – the big leap
+// MMXXVI (2026) – ES1995 becomes the LAST polyfill
+```
+
 ### Fuzzy string match
 
-```js
+```ts
 const names = [
-  "Timothée",
-  "Beyoncé",
-  "Penélope",
-  "Renée",
-  "Clémence",
-  "Zoë",
-  "Chloë",
-  "Øyvind",
-  "Žofia",
-  "Michał",
-  "Clémentine"
+  "Timothée", "Beyoncé", "Penélope", "Renée", "Clémence",
+  "Zoë", "Chloë", "Øyvind", "Žofia", "Michał", "Clémentine",
 ];
 
 const searchTerm = "cle";
@@ -182,45 +286,28 @@ names
   .sorted(([a], [b]) => b - a)
   .take(3)
   .pipe(console.log);
-// [0.4444444444444444, "Clémence"]
-// [0.36363636363636365, "Clémentine"]
-// [0, "Timothée"]
+// [0.4444, "Clémence"]
+// [0.3636, "Clémentine"]
+// [0,      "Timothée"]
 ```
 
-### Array Aggregations
+### String Superpowers
 
-```js
-const scores = [85, 92, 78, 95, 88, 73, 91, 84];
+```ts
+"hello world".capitalize();                    // "Hello world"
+"hello world".camelCase();                     // "helloWorld"
+"hello world".kebabCase();                     // "hello-world"
+"hello world".snakeCase();                     // "hello_world"
+"hello".reverse();                             // "olleh"
+"hello".chars();                               // ["h", "e", "l", "l", "o"]
+"  ".isBlank();                                // true
+"racecar".isPalindrome();                      // true
+"A man a plan a canal Panama".isPalindrome();  // true
+"hello hello world".count("hello");            // 2
+"42".toNumber() + 1;                           // 43
 
-scores.sum();      // 686
-scores.average();  // 85.75
-scores.min();      // 73
-scores.max();      // 95
-scores.count((s) => s > 85);  // 4
-
-[1, 2, 2, 3, 3, 3].frequencies();  // { 1: 1, 2: 2, 3: 3 }
-```
-
-### Sliding Windows & Running Accumulations
-
-```js
-const data = [1, 2, 3, 4, 5];
-
-data.window(3);  // [[1,2,3], [2,3,4], [3,4,5]]
-data.scan((acc, x) => acc + x, 0);  // [1, 3, 6, 10, 15]
-```
-
-### String Transformations
-
-```js
-"hello world".capitalize();  // "Hello world"
-"hello world".camelCase();   // "helloWorld"
-"hello world".kebabCase();   // "hello-world"
-"hello world".snakeCase();   // "hello_world"
-"hello".reverse();           // "olleh"
-"hello".chars();             // ["h", "e", "l", "l", "o"]
-"  ".isBlank();              // true
-"42".toNumber() + 1;         // 43
+"Hello {{name}}, you are {{age}}!".template({ name: "Alice", age: 30 });
+// "Hello Alice, you are 30!"
 
 '<script>alert("xss")</script>'.escapeHtml();
 // "&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;"
@@ -228,39 +315,65 @@ data.scan((acc, x) => acc + x, 0);  // [1, 3, 6, 10, 15]
 
 ### Number Superpowers
 
-```js
-(17).isPrime();     // true
-(4).isEven();       // true
-(7).isOdd();        // true
-(1).ordinal();      // "1st"
-(23).ordinal();     // "23rd"
-(255).toHex();      // "ff"
-(255).toBinary();   // "11111111"
+```ts
+(17).isPrime();       // true
+(4).isEven();         // true
+(7).isOdd();          // true
+(1).ordinal();        // "1st"
+(23).ordinal();       // "23rd"
+(255).toHex();        // "ff"
+(255).toBinary();     // "11111111"
 (3661000).duration(); // "1h 1m 1s"
 
-(5).to(10);         // [5, 6, 7, 8, 9]
-(3).times((i) => i * i);  // [0, 1, 4]
+(5).to(10);                  // [5, 6, 7, 8, 9]
+(3).times((i) => i * i);     // [0, 1, 4]
 
-Number.fibonacci(10);  // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+(1995).toRoman();             // "MCMXCV"
+(42).toRoman();               // "XLII"
+(2026).toRoman();             // "MMXXVI"
+
+Number.fibonacci(10);         // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+```
+
+### Date Made Easy
+
+```ts
+// Pretend it is 2026-04-01T23:47:00
+const now = new Date(2026, 3, 1, 23, 47, 0);
+
+now.format("YYYY-MM-DD HH:mm:ss");   // "2026-04-01 23:47:00"
+now.isWeekday();                       // true (Wednesday)
+now.addDays(7).format("YYYY-MM-DD");  // "2026-04-08"
+now.startOfDay();                      // 2026-04-01T00:00:00
+now.endOfMonth();                      // 2026-04-30T23:59:59
+
+// JavaScript's birthday – first public release with Netscape Navigator 2.0
+const jsBirthday = new Date(1995, 11, 4); // December 4, 1995
+jsBirthday.age();        // 30
+jsBirthday.relative();   // "30 years ago"
+
+Date.today();     // start of today
+Date.tomorrow();  // start of tomorrow
+Date.yesterday(); // start of yesterday
 ```
 
 ### Function Composition & Currying
 
-```js
-const double = (x) => x * 2;
-const addOne = (x) => x + 1;
-const square = (x) => x * x;
+```ts
+const double = (x: number) => x * 2;
+const addOne = (x: number) => x + 1;
+const square = (x: number) => x * x;
 
 // Right-to-left composition
 const transform = Function.compose(square, addOne, double);
-transform(3);  // (3*2+1)^2 = 49
+transform(3);  // (3*2+1)² = 49
 
 // Left-to-right pipeline
 const pipeline = Function.pipe(double, addOne, square);
-pipeline(3);   // (3*2+1)^2 = 49
+pipeline(3);   // (3*2+1)² = 49
 
 // Currying
-const add = ((a, b) => a + b).curry();
+const add = ((a: number, b: number) => a + b).curry();
 const add10 = add(10);
 add10(5);  // 15
 
@@ -270,7 +383,7 @@ const fetchData = (() => fetch("/api")).retry(3, 1000);
 
 ### Object Utilities
 
-```js
+```ts
 const user = { name: "Alice", age: 30, email: "alice@example.com", password: "secret" };
 
 Object.pick(user, ["name", "email"]);
@@ -285,29 +398,22 @@ Object.deepMerge({ theme: "dark", lang: "en" }, { theme: "light" });
 { a: 1, b: [2, 3] }.equals({ a: 1, b: [2, 3] });  // true
 ```
 
-### Date Made Easy
+### Math – lerp & inverseLerp
 
-```js
-const now = new Date();
-
-now.format("YYYY-MM-DD HH:mm:ss");  // "2024-03-15 14:30:00"
-now.isWeekday();                      // true
-now.addDays(7).format("YYYY-MM-DD"); // "2024-03-22"
-now.startOfDay();                     // 2024-03-15T00:00:00
-now.endOfMonth();                     // 2024-03-31T23:59:59
-
-const birthday = new Date(1995, 0, 1);
-birthday.age();        // 29
-birthday.relative();   // "29 years ago"
-
-Date.today();     // start of today
-Date.tomorrow();  // start of tomorrow
-Date.yesterday(); // start of yesterday
+```ts
+Math.lerp(0, 100, 0.5);            // 50
+Math.inverseLerp(0, 100, 75);      // 0.75
+Math.factorial(10);                  // 3628800
+Math.fibonacci(10);                  // 55
+Math.isPrime(17);                    // true
+Math.degreesToRadians(180);          // π
+Math.sum(1, 2, 3, 4, 5);           // 15
+Math.average(1, 2, 3, 4, 5);       // 3
 ```
 
 ### Promise Utilities
 
-```js
+```ts
 // Sleep
 await Promise.sleep(1000);
 
@@ -326,22 +432,9 @@ await someSlowOperation().timeout(5000);
 await Promise.retry(() => fetch("/unreliable-api"), { retries: 3, delay: 1000 });
 ```
 
-### Math Enhancements
-
-```js
-Math.lerp(0, 100, 0.5);                // 50
-Math.mapRange(5, 0, 10, 0, 100);       // 50
-Math.factorial(10);                      // 3628800
-Math.fibonacci(10);                      // 55
-Math.isPrime(17);                        // true
-Math.degreesToRadians(180);              // π
-Math.sum(1, 2, 3, 4, 5);               // 15
-Math.average(1, 2, 3, 4, 5);           // 3
-```
-
 ### JSON Safety
 
-```js
+```ts
 JSON.safeParse('{"valid": true}');          // { valid: true }
 JSON.safeParse("not json", {});             // {}
 JSON.safeParse("broken", { default: true }); // { default: true }
@@ -349,46 +442,46 @@ JSON.safeParse("broken", { default: true }); // { default: true }
 
 ### RegExp Patterns
 
-```js
+```ts
 RegExp.email.test("user@example.com");                          // true
 RegExp.UUID.test("550e8400-e29b-41d4-a716-446655440000");       // true
 RegExp.hexColor.test("#ff00ff");                                 // true
 RegExp.IPv4.test("192.168.1.1");                                // true
-RegExp.ISO8601.test("2024-01-15T10:30:00Z");                    // true
+RegExp.ISO8601.test("2026-04-01T23:47:00Z");                    // true
 RegExp.URL.test("https://example.com");                          // true
 ```
 
 ### Fun fun fun
 
-```js
-const fetchArticle = (id) => {
+```ts
+const fetchArticle = (id: string) => {
   // get the latest hot shit from Hacker News
 };
 const fetchArticleOnlyOnce = fetchArticle.memoize();
 ```
 
-```js
+```ts
 const onResizeWindow = () => {
   // recalculate expensive layout
 };
 const smartOnResizeWindow = onResizeWindow.debounce(150);
 ```
 
-```js
+```ts
 const onClick = () => {
   // http://clickclickclick.click
 };
 const rateLimitedOnClick = onClick.throttle(1000);
 ```
 
-```js
-const add = (a, b) => a + b;
+```ts
+const add = (a: number, b: number) => a + b;
 const add10 = add.partial(10);
 ```
 
 ### Array Indexing
 
-```js
+```ts
 const squares = Number.range(10).map((i) => i ** 2);
 const squareAtFirst = squares.at(1);
 
@@ -398,4 +491,4 @@ const squaresAtOddIndices = squares.at(oddIndices);
 
 ---
 
-Checkout `src/es1995.js` for other funky stuff.
+Checkout `src/es1995.ts` for other funky stuff.

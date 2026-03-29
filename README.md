@@ -44,7 +44,9 @@ Written in TypeScript with first-class type declarations for a smooth editor exp
 
 ## Primitives
 
-ES1995 enriches **every** built-in type with composable, predictable methods:
+ES1995 enriches **every** built-in type with composable, predictable methods.
+
+> **`tap` is uniform** — `tap(fn)` always passes `this` to `fn` (the whole value), whether called on an Object, Array, or Promise. Use `forEach` for element-wise iteration.
 
 | Primitive | Prototype Methods | Static Methods |
 | ----------- | ----------------------------------------- | ---------------------------------- |

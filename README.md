@@ -108,50 +108,60 @@ A first-class `Color` object with perceptually uniform mixing in OKLCH space:
 
 ## Showcase
 
-### ✦ Magnum Opus — Startup Metrics Dashboard
+### ✦ Magnum Opus — Community Garden Harvest Festival 🌻
 
-A real analytics pipeline in 28 lines. No libraries. No imports. Just JavaScript, perfected.
+All the data, right here. 30 lines of pure joy. No lodash, no moment, no nothing — just ES1995.
 
 ```ts
 import "./es1995"
 
-const signups = await fetch("/api/signups").then(r => r.json())
+// 🌱 This season's harvest from our community garden
+const plots = [
+  { gardener: "Yuki",    harvested: "2026-09-14", crop: "tomatoes",   kg: 23.7, award: "" },
+  { gardener: "Amara",   harvested: "2026-09-15", crop: "sunflowers", kg: 8.2,  award: "best bloom" },
+  { gardener: "Tomáš",   harvested: "2026-09-14", crop: "peppers",    kg: 15.4, award: "" },
+  { gardener: "Priya",   harvested: "2026-09-16", crop: "tomatoes",   kg: 31.0, award: "biggest yield" },
+  { gardener: "Dante",   harvested: "2026-09-15", crop: "herbs",      kg: 4.8,  award: "" },
+  { gardener: "Siobhán", harvested: "2026-09-14", crop: "peppers",    kg: 19.1, award: "" },
+  { gardener: "Léa",     harvested: "2026-09-16", crop: "sunflowers", kg: 6.5,  award: "" },
+  { gardener: "Kofi",    harvested: "2026-09-15", crop: "tomatoes",   kg: 27.3, award: "" },
+]
 
-const report = signups
-  .reject((u) => u.email.isBlank())                          // clean data
-  .partition((u) => u.plan === "pro")                         // [pro, free]
-  .tap(([pro, free]) => console.log(`Pro: ${pro.length}, Free: ${free.length}`))
-  .flatMap((group) => group)                                  // flatten back
-  .groupBy((u) => u.createdAt.toDate().format("YYYY-MM"))     // cohort by month
-  .entries()                                                   // Object → Array bridge
-  .sortBy("[0]")                                               // sort by month key
-  .map(([month, users]) => ({
-    month,
-    count:    users.length,
-    revenue:  users.map((u) => u.amount).sum().round(2),
-    avgSpend: users.map((u) => u.amount).average().round(2),
-    topPlan:  users.map((u) => u.plan).frequencies().entries().sortBy("[1]").last()?.[0],
-    badge:    Color.hsl(users.length.clamp(0, 100) * 1.2, 80, 50)
-                .contrastRatio(Color.from("#ffffff")) > 4.5 ? "✅" : "⚠️",
+// 🎪 Build the festival program
+const festival = plots
+  .reject((p) => p.kg < 5)                                       // minimum 5kg to enter
+  .sortBy("kg").reversed()                                        // biggest harvest first
+  .tap((top) => console.log(`🏆 Champion: ${top.first().gardener}`))
+  .groupBy("crop")                                                // group by crop type
+  .entries()                                                      // Object → Array bridge
+  .map(([crop, growers]) => ({
+    crop:      crop.capitalize(),
+    growers:   growers.length,
+    totalKg:   growers.map((g) => g.kg).sum().round(1),
+    avgKg:     growers.map((g) => g.kg).average().round(1),
+    ribbon:    Color.hsl(growers.length * 90, 75, 55).toHex(),
+    champion:  growers.sortBy("kg").last().gardener,
+    daysAgo:   growers.first().harvested.toDate().daysUntil(Date.today()).absoluteValue(),
+    topAward:  growers.map((g) => g.award).compact().first() ?? "—",
   }))
-  .tap((rows) => console.log(`Generated ${rows.length} monthly cohorts`))
-  .map((r) => `${r.badge} ${r.month} — ${r.count.ordinal()} cohort | `
-            + `$${r.revenue} rev, $${r.avgSpend} avg | top: ${r.topPlan.capitalize()}`)
+  .sortBy("totalKg").reversed()
+  .map((c) => `${c.ribbon.toColor().darken(0.2).toHex()} ${c.crop.padEnd(12)}`
+    + `${c.growers} growers | ${c.totalKg}kg total, ${c.avgKg}kg avg `
+    + `| 🏅 ${c.champion} | ${c.daysAgo} days ago | ${c.topAward}`)
 
-report.pipe(console.log)
+festival.pipe(console.log)
 ```
 
-**What just happened — no lodash, no moment, no chalk, no zod import needed:**
-- `reject` / `partition` / `groupBy` / `frequencies` — Array pipelines that read like English
-- `.entries().sortBy("[0]")` — Object→Array bridge, then sort by key
-- `.toDate().format("YYYY-MM")` — String→Date parsing + formatting, zero libraries  
-- `.sum().round(2)` / `.average()` / `.clamp()` — Number chains, no `Math.round` gymnastics
-- `.isBlank()` / `.capitalize()` / `.ordinal()` — String & Number formatting built-in
-- `Color.hsl(…).contrastRatio(…)` — WCAG accessibility check in one expression
-- `.tap(…)` — Side-effect logging without breaking the chain
-- `.pipe(console.log)` — Terminal output, still fluent
+**What just happened — no lodash, no moment, no chalk needed:**
+- `reject` / `sortBy` / `reversed` / `groupBy` / `compact` — Array pipelines that read like English
+- `.entries()` — Object→Array bridge for fluent chaining
+- `.sum().round(1)` / `.average()` / `.absoluteValue()` — Number chains, no `Math.round` gymnastics
+- `.capitalize()` / `.padEnd()` — String formatting, built right in
+- `.toDate().daysUntil(Date.today())` — Date arithmetic, zero libraries
+- `Color.hsl(…).toHex()` / `.toColor().darken().toHex()` — Color math in one expression
+- `.first()` / `.last()` / `.tap()` / `.pipe()` — fluent from start to finish
 
-*This is what JavaScript always wanted to be.*
+*This is what JavaScript always wanted to be.* 🌻
 
 ---
 

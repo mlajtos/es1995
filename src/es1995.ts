@@ -86,6 +86,12 @@ declare global {
     tap<T>(this: T, fn: (value: T) => void): T;
     /** Deep-equality check via lodash `isEqual`. */
     equals(other: unknown): boolean;
+    /** Return own enumerable [key, value] pairs. */
+    entries<V>(this: Record<string, V>): [string, V][];
+    /** Return own enumerable keys. */
+    keys(this: object): string[];
+    /** Return own enumerable values. */
+    values<V>(this: Record<string, V>): V[];
   }
 
   interface ObjectConstructor {
@@ -137,7 +143,7 @@ declare global {
     sum(fn?: ((value: T) => number) | string): number;
     tail(): T[];
     take(count: number): T[];
-    tap(fn: (value: T) => void): T[];
+    tap(fn: (array: T[]) => void): T[];
     toObject<K extends string | number | symbol, V = T>(
       keyFn: (item: T, index: number) => K,
       valueFn?: (item: T, index: number) => V,
@@ -175,18 +181,16 @@ declare global {
     truncate(length: number, omission?: string): string;
     unescapeHtml(): string;
     words(): string[];
-    /** Parse hex color string to RGB. */
-    toRGB(): ColorRGB;
-    /** Parse hex color string to HSL. */
-    toHSL(): ColorHSL;
-    /** Parse hex color string to OKLCH (perceptually uniform). */
-    toOKLCH(): ColorOKLCH;
+    /** Parse hex color string into a Color object. */
+    toColor(): Color;
     /** Parse a query string into key-value pairs. */
     parseQueryString(): Record<string, string>;
     /** Parse duration string like "2h30m" to milliseconds. */
     toDuration(): number;
     /** Parse byte string like "1.5 GB" to number of bytes. */
     toBytes(): number;
+    /** Parse date string into a Date. */
+    toDate(): Date;
   }
 
   interface StringConstructor {
@@ -230,12 +234,6 @@ declare global {
     leastCommonMultiple(a: number, b: number): number;
     random(lower?: number, upper?: number, floating?: boolean): number;
     range(start: number, end?: number, step?: number): number[];
-    /** Create hex color from RGB. */
-    rgb(r: number, g: number, b: number): string;
-    /** Create hex color from HSL. */
-    hsl(h: number, s: number, l: number): string;
-    /** Create hex color from OKLCH (perceptually uniform). L: 0–1, C: 0–0.4, h: 0–360. */
-    oklch(L: number, C: number, h: number): string;
   }
 
   // ── Function ──────────────────────────────────────────────────────────
@@ -264,7 +262,6 @@ declare global {
     constant<T>(value: T): () => T;
     false(): boolean;
     fixedPoint(f: (g: Function) => Function): Function;
-    from(arg: string | unknown[] | Record<string | symbol, unknown>, ...rest: unknown[]): Function;
     identity<T>(value: T): T;
     isFunction(value: unknown): value is Function;
     noop(): void;
@@ -348,7 +345,6 @@ declare global {
 
   // ── Symbol ────────────────────────────────────────────────────────────
   interface SymbolConstructor {
-    readonly callable: symbol;
     readonly documentation: symbol;
   }
 
@@ -377,6 +373,8 @@ declare global {
     optional(): ZodString;
     parse(value: unknown): string;
     safeParse(value: unknown): SchemaResult<string>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<string>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<string>>;
   }
   
   interface ZodNumber {
@@ -389,12 +387,16 @@ declare global {
     optional(): ZodNumber;
     parse(value: unknown): number;
     safeParse(value: unknown): SchemaResult<number>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<number>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<number>>;
   }
   
   interface ZodBoolean {
     optional(): ZodBoolean;
     parse(value: unknown): boolean;
     safeParse(value: unknown): SchemaResult<boolean>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<boolean>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<boolean>>;
   }
   
   interface ZodArray<T> {
@@ -404,12 +406,16 @@ declare global {
     optional(): ZodArray<T>;
     parse(value: unknown): T[];
     safeParse(value: unknown): SchemaResult<T[]>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<T[]>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<T[]>>;
   }
   
   interface ZodObject<T> {
     optional(): ZodObject<T>;
     parse(value: unknown): T;
     safeParse(value: unknown): SchemaResult<T>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<T>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<T>>;
     extend<U>(shape: Record<string, unknown>): ZodObject<T & U>;
     pick<K extends keyof T>(...keys: K[]): ZodObject<Pick<T, K>>;
     omit<K extends keyof T>(...keys: K[]): ZodObject<Omit<T, K>>;
@@ -418,16 +424,22 @@ declare global {
   interface ZodLiteral<T> {
     parse(value: unknown): T;
     safeParse(value: unknown): SchemaResult<T>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<T>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<T>>;
   }
   
   interface ZodUnion<T> {
     parse(value: unknown): T;
     safeParse(value: unknown): SchemaResult<T>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<T>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<T>>;
   }
   
   interface ZodEnum<T extends string> {
     parse(value: unknown): T;
     safeParse(value: unknown): SchemaResult<T>;
+    parseAsync(value: unknown | Promise<unknown>): Promise<T>;
+    safeParseAsync(value: unknown | Promise<unknown>): Promise<SchemaResult<T>>;
     options: T[];
   }
 
@@ -446,6 +458,43 @@ declare global {
   interface ColorRGB { r: number; g: number; b: number }
   interface ColorHSL { h: number; s: number; l: number }
   interface ColorOKLCH { L: number; C: number; h: number }
+
+  interface Color {
+    readonly r: number;
+    readonly g: number;
+    readonly b: number;
+    toHex(): string;
+    toRGB(): ColorRGB;
+    toHSL(): ColorHSL;
+    toOKLCH(): ColorOKLCH;
+    /** Mix with another color in OKLCH space (perceptually uniform). t=0 is this, t=1 is other. */
+    mix(other: Color, t?: number): Color;
+    lighten(amount: number): Color;
+    darken(amount: number): Color;
+    rotate(degrees: number): Color;
+    saturate(amount: number): Color;
+    desaturate(amount: number): Color;
+    complementary(): Color;
+    analogous(): [Color, Color, Color];
+    triadic(): [Color, Color, Color];
+    /** Relative luminance (0–1) per WCAG. */
+    luminance(): number;
+    /** WCAG contrast ratio against another color. */
+    contrastRatio(other: Color): number;
+    toString(): string;
+  }
+
+  interface ColorConstructor {
+    new(r: number, g: number, b: number): Color;
+    /** Parse a hex string like "#ff6347". */
+    from(hex: string): Color;
+    rgb(r: number, g: number, b: number): Color;
+    hsl(h: number, s: number, l: number): Color;
+    oklch(L: number, C: number, h: number): Color;
+    random(): Color;
+  }
+
+  var Color: ColorConstructor;
 
   // ── Type-fest Utility Types ───────────────────────────────────────────
   type PartialDeep<T> = T extends object ? { [P in keyof T]?: PartialDeep<T[P]> } : T;
@@ -506,6 +555,15 @@ const ObjectPrototype = {
   },
   equals(this: unknown, other: unknown): boolean {
     return isEqual(this, other);
+  },
+  entries(this: object): [string, unknown][] {
+    return Object.entries(this);
+  },
+  keys(this: object): string[] {
+    return Object.keys(this);
+  },
+  values(this: object): unknown[] {
+    return Object.values(this);
   },
 };
 
@@ -673,8 +731,8 @@ const ArrayPrototype = {
   take(this: unknown[], count: number): unknown[] {
     return this.slice(0, count);
   },
-  tap(this: unknown[], func: (value: unknown) => void): unknown[] {
-    this.forEach(func);
+  tap(this: unknown[], func: (value: unknown[]) => void): unknown[] {
+    func(this);
     return this;
   },
   toObject(
@@ -718,9 +776,135 @@ const ArrayObject = {
 
 /*
 
-    Color Conversions
+    Color Class
 
 */
+
+class ColorImpl {
+  readonly r: number;
+  readonly g: number;
+  readonly b: number;
+
+  constructor(r: number, g: number, b: number) {
+    this.r = Math.round(Math.max(0, Math.min(255, r)));
+    this.g = Math.round(Math.max(0, Math.min(255, g)));
+    this.b = Math.round(Math.max(0, Math.min(255, b)));
+  }
+
+  static from(hex: string): ColorImpl {
+    const { r, g, b } = hexToRgb(hex);
+    return new ColorImpl(r, g, b);
+  }
+
+  static rgb(r: number, g: number, b: number): ColorImpl {
+    return new ColorImpl(r, g, b);
+  }
+
+  static hsl(h: number, s: number, l: number): ColorImpl {
+    const { r, g, b } = hslToRgb(h, s, l);
+    return new ColorImpl(r, g, b);
+  }
+
+  static oklch(L: number, C: number, h: number): ColorImpl {
+    const { r, g, b } = oklchToRgb(L, C, h);
+    return new ColorImpl(r, g, b);
+  }
+
+  static random(): ColorImpl {
+    return new ColorImpl(
+      Math.floor(Math.random() * 256),
+      Math.floor(Math.random() * 256),
+      Math.floor(Math.random() * 256),
+    );
+  }
+
+  toHex(): string {
+    return rgbToHex(this.r, this.g, this.b);
+  }
+
+  toRGB(): { r: number; g: number; b: number } {
+    return { r: this.r, g: this.g, b: this.b };
+  }
+
+  toHSL(): { h: number; s: number; l: number } {
+    return rgbToHsl(this.r, this.g, this.b);
+  }
+
+  toOKLCH(): { L: number; C: number; h: number } {
+    return rgbToOklch(this.r, this.g, this.b);
+  }
+
+  mix(other: ColorImpl, t = 0.5): ColorImpl {
+    const a = this.toOKLCH();
+    const b = other.toOKLCH();
+    let dh = b.h - a.h;
+    if (dh > 180) dh -= 360;
+    if (dh < -180) dh += 360;
+    const L = a.L + (b.L - a.L) * t;
+    const C = a.C + (b.C - a.C) * t;
+    let h = a.h + dh * t;
+    if (h < 0) h += 360;
+    if (h >= 360) h -= 360;
+    return ColorImpl.oklch(L, C, h);
+  }
+
+  lighten(amount: number): ColorImpl {
+    const lch = this.toOKLCH();
+    return ColorImpl.oklch(Math.min(1, lch.L + amount), lch.C, lch.h);
+  }
+
+  darken(amount: number): ColorImpl {
+    const lch = this.toOKLCH();
+    return ColorImpl.oklch(Math.max(0, lch.L - amount), lch.C, lch.h);
+  }
+
+  rotate(degrees: number): ColorImpl {
+    const lch = this.toOKLCH();
+    let h = (lch.h + degrees) % 360;
+    if (h < 0) h += 360;
+    return ColorImpl.oklch(lch.L, lch.C, h);
+  }
+
+  saturate(amount: number): ColorImpl {
+    const lch = this.toOKLCH();
+    return ColorImpl.oklch(lch.L, Math.max(0, lch.C + amount), lch.h);
+  }
+
+  desaturate(amount: number): ColorImpl {
+    return this.saturate(-amount);
+  }
+
+  complementary(): ColorImpl {
+    return this.rotate(180);
+  }
+
+  analogous(): [ColorImpl, ColorImpl, ColorImpl] {
+    return [this.rotate(-30), this, this.rotate(30)];
+  }
+
+  triadic(): [ColorImpl, ColorImpl, ColorImpl] {
+    return [this, this.rotate(120), this.rotate(240)];
+  }
+
+  luminance(): number {
+    const lr = linearize(this.r / 255);
+    const lg = linearize(this.g / 255);
+    const lb = linearize(this.b / 255);
+    return 0.2126 * lr + 0.7152 * lg + 0.0722 * lb;
+  }
+
+  contrastRatio(other: ColorImpl): number {
+    const l1 = Math.max(this.luminance(), other.luminance());
+    const l2 = Math.min(this.luminance(), other.luminance());
+    return (l1 + 0.05) / (l2 + 0.05);
+  }
+
+  toString(): string {
+    return this.toHex();
+  }
+}
+
+(globalThis as any).Color = ColorImpl;
 
 const hexToRgb = (hex: string): { r: number; g: number; b: number } => {
   const h = hex.replace(/^#/, "");
@@ -895,16 +1079,8 @@ const StringPrototype = {
   words(this: string): string[] {
     return lodashWords(this.valueOf());
   },
-  toRGB(this: string): { r: number; g: number; b: number } {
-    return hexToRgb(this);
-  },
-  toHSL(this: string): { h: number; s: number; l: number } {
-    const { r, g, b } = hexToRgb(this);
-    return rgbToHsl(r, g, b);
-  },
-  toOKLCH(this: string): { L: number; C: number; h: number } {
-    const { r, g, b } = hexToRgb(this);
-    return rgbToOklch(r, g, b);
+  toColor(this: string): ColorImpl {
+    return ColorImpl.from(this);
   },
   parseQueryString(this: string): Record<string, string> {
     const str = this.replace(/^\?/, "");
@@ -931,6 +1107,9 @@ const StringPrototype = {
     const match = this.trim().match(/^([\d.]+)\s*([a-z]+)$/i);
     if (!match) return NaN;
     return parseFloat(match[1]) * (units[match[2].toLowerCase()] ?? NaN);
+  },
+  toDate(this: string): Date {
+    return new Date(this.valueOf());
   },
 };
 
@@ -1096,17 +1275,6 @@ const NumberObject = {
   },
   random,
   range,
-  rgb(r: number, g: number, b: number): string {
-    return rgbToHex(r, g, b);
-  },
-  hsl(h: number, s: number, l: number): string {
-    const { r, g, b } = hslToRgb(h, s, l);
-    return rgbToHex(r, g, b);
-  },
-  oklch(L: number, C: number, h: number): string {
-    const { r, g, b } = oklchToRgb(L, C, h);
-    return rgbToHex(r, g, b);
-  },
 };
 
 /*
@@ -1180,43 +1348,6 @@ const FunctionPrototype: Record<string, Function> = {
   },
 };
 
-const createLambda = (expression: string): Function => {
-  const regexp = new RegExp("[$]+", "g");
-
-  let maxLength = 0;
-  let match;
-
-  // eslint-disable-next-line
-  while ((match = regexp.exec(expression)) != null) {
-    const paramNumber = match[0].length;
-    if (paramNumber > maxLength) {
-      maxLength = paramNumber;
-    }
-  }
-
-  const argArray: string[] = [];
-  for (let i = 1; i <= maxLength; i++) {
-    let dollar = "";
-    for (let j = 0; j < i; j++) {
-      dollar += "$";
-    }
-    argArray.push(dollar);
-  }
-
-  const args = Array.prototype.join.call(argArray, ",");
-
-  // eslint-disable-next-line
-  return new Function(args, "return " + expression);
-};
-
-class CallableObject extends Function {
-  constructor(props: Record<string | symbol, unknown>) {
-    super();
-    const callable = props[Symbol.for("callable")] as Function;
-    return Object.assign(callable.bind(props), props);
-  }
-}
-
 const FunctionObject: Record<string, unknown> = {
   compose: flowRight,
   conditional: cond,
@@ -1225,19 +1356,6 @@ const FunctionObject: Record<string, unknown> = {
   fixedPoint: (f: (g: Function) => Function) => {
     const g = (h: Function) => (x: unknown) => f(h(h))(x);
     return g(g);
-  },
-  from: (arg: unknown, ...rest: unknown[]) => {
-    if (typeof arg === "string") {
-      return createLambda(arg);
-    }
-
-    if (Array.isArray(arg)) {
-      return (arg as unknown[]).zip(rest).flat().compact().join("").pipe(createLambda);
-    }
-
-    if (typeof arg === "object" && arg !== null && (arg as Record<symbol, unknown>)[Symbol.for("callable")]) {
-      return new CallableObject(arg as Record<string | symbol, unknown>);
-    }
   },
   identity,
   isFunction,
@@ -1253,7 +1371,6 @@ const FunctionObject: Record<string, unknown> = {
 */
 
 const SymbolObject = {
-  callable: Symbol.for("callable"),
   documentation: Symbol.for("documentation"),
 };
 
@@ -1616,6 +1733,16 @@ const createSchema = <T>(baseCheck: Check, checks: Check[] = []) => {
     },
     safeParse(value: unknown) {
       return validate(value);
+    },
+    async parseAsync(value: unknown): Promise<T> {
+      const resolved = await value;
+      const result = validate(resolved);
+      if (!result.success) throw new ZodValidationError(result.error!);
+      return result.data!;
+    },
+    async safeParseAsync(value: unknown): Promise<{ success: boolean; data?: T; error?: string }> {
+      const resolved = await value;
+      return validate(resolved);
     },
     _checks: allChecks,
     _baseCheck: baseCheck,

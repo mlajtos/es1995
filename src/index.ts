@@ -21,38 +21,12 @@ test("Fancy FizzBuzz", () => {
     .pipe(console.log);
 });
 
-test("Functional Objects", () => {
-  const count = Function.from({
-    state: 0,
-    [Symbol.callable]() {
-      this.state += 1;
-      return this.state;
-    },
-  });
-
-  (count as Function)().pipe(console.log);
-  (count as Function)().pipe(console.log);
-  (count as Function)().pipe(console.log);
-});
-
 test("Number Decomposition", () => {
   const n = -23.47;
   const [s, i, f] = [n.sign(), n.integerPart(), n.fractionalPart()];
   const m = s * (i + f);
 
   console.log(n === m, m, n);
-});
-
-test("Lambda Shortcut", () => {
-  const $ = Function.from;
-
-  const sumOfSquares1 = (n: number) => (n * (n - 1) * (2 * n - 1)) / 6;
-  const sumOfSquares2 = (n: number) =>
-    Number.range(n)
-      .map($`$ * $`)
-      .reduce($`$ + $$` as any);
-
-  console.log(sumOfSquares1(100) === sumOfSquares2(100), sumOfSquares1(100));
 });
 
 test("Builtin documentation", () => {
@@ -389,9 +363,9 @@ test("RegExp Patterns", () => {
 */
 
 test("Color Interpolation – Temperature Gradient", () => {
-  // Map temperatures to a cold-to-hot color gradient using lerp & inverseLerp
-  const coldColor = [66, 133, 244]; // #4285F4 (cold blue)
-  const hotColor = [234, 67, 53]; // #EA4335 (hot red)
+  // Map temperatures to a cold-to-hot color gradient using Color.mix
+  const cold = Color.from("#4285F4"); // cold blue
+  const hot = Color.from("#EA4335"); // hot red
 
   const temperatures = [18, 22, 35, 15, 28, 31, 20];
   const [tMin, tMax] = [temperatures.min() as number, temperatures.max() as number];
@@ -399,10 +373,8 @@ test("Color Interpolation – Temperature Gradient", () => {
   temperatures
     .map((temp) => {
       const t = Math.inverseLerp(tMin, tMax, temp);
-      const rgb = (coldColor as number[])
-        .zip(hotColor)
-        .map(([c, h]) => Math.lerp(c as number, h as number, t).round(0));
-      return { temp: `${temp}°C`, t: t.round(2), color: `rgb(${rgb.join(",")})` };
+      const color = cold.mix(hot, t);
+      return { temp: `${temp}°C`, t: t.round(2), color: color.toHex() };
     })
     .sortBy("temp")
     .pipe(console.log);
@@ -859,32 +831,62 @@ test("UUID Generation", () => {
   console.log("All valid:", ids.every((id: string) => RegExp.UUID.test(id)));
 });
 
-test("Color Conversions", () => {
-  // Hex → RGB → HSL round-trip
-  const hex = "#ff6347"; // Tomato
-  const rgb = hex.toRGB();
-  const hsl = hex.toHSL();
-  const oklch = hex.toOKLCH();
-  console.log(`${hex} → RGB:`, rgb, `→ HSL:`, hsl, `→ OKLCH:`, oklch);
+test("Color – The Color Class", () => {
+  // Create from hex, RGB, HSL, OKLCH
+  const tomato = Color.from("#ff6347");
+  const blue = Color.rgb(0, 0, 255);
+  const green = Color.hsl(120, 100, 50);
+  const perceptual = Color.oklch(0.7, 0.15, 150);
 
-  // Create colors from components
-  console.log("Red:", Number.rgb(255, 0, 0));
-  console.log("Pure blue HSL:", Number.hsl(240, 100, 50));
-  console.log("OKLCH mid-gray:", Number.oklch(0.5, 0, 0));
+  console.log("Tomato:", tomato.toHex(), "RGB:", tomato.toRGB(), "HSL:", tomato.toHSL(), "OKLCH:", tomato.toOKLCH());
+  console.log("Blue:", blue.toHex());
+  console.log("Green:", green.toHex());
+  console.log("Perceptual:", perceptual.toHex());
 
-  // Generate a rainbow gradient
-  const rainbow = Number.range(0, 360, 30).map((h) => Number.hsl(h, 100, 50));
-  console.log("Rainbow:", rainbow);
+  // String.toColor() convenience
+  const coral = "#ff7f50".toColor();
+  console.log("Coral:", coral.toHex(), coral.toRGB());
 
-  // OKLCH perceptually uniform gradient (constant lightness & chroma)
-  const oklchRainbow = Number.range(0, 360, 30).map((h) => Number.oklch(0.7, 0.15, h));
-  console.log("OKLCH rainbow (perceptually uniform):", oklchRainbow);
+  // Mixing in OKLCH space (perceptually uniform!)
+  const red = Color.from("#ff0000");
+  const mix50 = red.mix(blue);
+  const mix25 = red.mix(blue, 0.25);
+  console.log("Red + Blue 50%:", mix50.toHex());
+  console.log("Red + Blue 25%:", mix25.toHex());
 
-  // Compare: same hex color in all three spaces
-  const coral = "#ff7f50";
-  console.log("Coral in RGB:", coral.toRGB());
-  console.log("Coral in HSL:", coral.toHSL());
-  console.log("Coral in OKLCH:", coral.toOKLCH());
+  // Adjustments
+  console.log("Tomato lighter:", tomato.lighten(0.1).toHex());
+  console.log("Tomato darker:", tomato.darken(0.1).toHex());
+  console.log("Tomato rotated 90°:", tomato.rotate(90).toHex());
+  console.log("Tomato saturated:", tomato.saturate(0.05).toHex());
+  console.log("Tomato desaturated:", tomato.desaturate(0.05).toHex());
+
+  // Color harmonies
+  console.log("Complementary:", tomato.complementary().toHex());
+  console.log("Analogous:", tomato.analogous().map(c => c.toHex()));
+  console.log("Triadic:", tomato.triadic().map(c => c.toHex()));
+
+  // Accessibility
+  const white = Color.from("#ffffff");
+  const black = Color.from("#000000");
+  console.log("White luminance:", white.luminance().round(3));
+  console.log("Black luminance:", black.luminance().round(3));
+  console.log("Contrast white/black:", white.contrastRatio(black).round(2));
+  console.log("Contrast tomato/white:", tomato.contrastRatio(white).round(2));
+
+  // OKLCH perceptually uniform rainbow
+  const rainbow = Number.range(0, 360, 30).map((h) => Color.oklch(0.7, 0.15, h).toHex());
+  console.log("OKLCH rainbow:", rainbow);
+
+  // Composable with pipe
+  const result = Color.from("#336699")
+    .pipe((c) => c.lighten(0.1))
+    .pipe((c) => c.rotate(30))
+    .toHex();
+  console.log("Piped color:", result);
+
+  // Color.random()
+  console.log("Random:", Color.random().toHex());
 });
 
 test("Promise Concurrency", async () => {
@@ -987,4 +989,63 @@ test("Type-fest: Deep Partial Config", () => {
   console.log("Port overridden:", (config as any).server.port === 8080);
   console.log("Pool max:", (config as any).database.pool.max === 50);
   console.log("Host kept:", (config as any).server.host === "localhost");
+});
+
+test("String.toDate – Date Parsing", () => {
+  // Complement to Date.format() – parse strings back to Dates
+  const date = "2026-03-28".toDate();
+  console.log("Parsed ISO:", date.format("YYYY-MM-DD")); // "2026-03-28"
+
+  const datetime = "2026-03-28T15:30:00Z".toDate();
+  console.log("Parsed datetime:", datetime.format("YYYY-MM-DD HH:mm:ss"));
+
+  // Round-trip: format → parse → format
+  const original = new Date(2026, 3, 1, 23, 47, 0);
+  const formatted = original.format("YYYY-MM-DD");
+  const roundTripped = formatted.toDate().format("YYYY-MM-DD");
+  console.log("Round-trip:", formatted, "→", roundTripped, "match:", formatted === roundTripped);
+});
+
+test("Object ↔ Array Bridge", () => {
+  const user = { name: "Alice", age: 30, role: "admin" };
+
+  // .entries(), .keys(), .values() on objects
+  console.log("Entries:", user.entries());
+  console.log("Keys:", user.keys());
+  console.log("Values:", user.values());
+
+  // Fluent pipeline: Object → Array → transform → Object
+  const uppercased = user
+    .entries()
+    .map(([k, v]) => [k, typeof v === "string" ? (v as string).toUpperCase() : v] as [string, unknown])
+    .toObject(([k]) => k, ([, v]) => v);
+  console.log("Uppercased:", uppercased);
+
+  // Object → sorted entries → take top N
+  const scores = { alice: 95, bob: 87, charlie: 92, diana: 99, eve: 88 };
+  const top3 = scores
+    .entries()
+    .sorted(([, a], [, b]) => (b as number) - (a as number))
+    .take(3)
+    .map(([name, score]) => `${name}: ${score}`);
+  console.log("Top 3:", top3);
+});
+
+test("z.parseAsync – Async Validation", async () => {
+  const emailSchema = z.string().email();
+
+  // Parse a Promise-wrapped value
+  const result = await emailSchema.safeParseAsync(Promise.resolve("alice@example.com"));
+  console.log("Async valid:", result);
+
+  const bad = await emailSchema.safeParseAsync(Promise.resolve("not-an-email"));
+  console.log("Async invalid:", bad);
+
+  // parseAsync throws on failure
+  try {
+    await emailSchema.parseAsync(Promise.resolve("valid@test.com"));
+    console.log("parseAsync succeeded");
+  } catch (e) {
+    console.log("parseAsync threw:", e);
+  }
 });

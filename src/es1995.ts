@@ -127,8 +127,8 @@ declare global {
     intersect(other: T[]): T[];
     intersperse(separator: T): T[];
     last(predicate?: (value: T, index: number, array: T[]) => boolean): T | undefined;
-    max(fn?: ((value: T) => number) | string): T;
-    min(fn?: ((value: T) => number) | string): T;
+    max(fn?: ((value: T) => number) | string): T | undefined;
+    min(fn?: ((value: T) => number) | string): T | undefined;
     average(fn?: ((value: T) => number) | string): number;
     pairwise(): [T, T][];
     partition(predicate: (value: T) => boolean): [T[], T[]];
@@ -151,12 +151,12 @@ declare global {
     uniqueBy(fn: ((value: T) => unknown) | string): T[];
     union(other: T[]): T[];
     window(size: number): T[][];
-    zip<U>(...arrays: U[][]): (T | U)[][];
+    zip<U>(...arrays: U[][]): (T | U | undefined)[][];
   }
 
   interface ArrayConstructor {
     cartesianProduct<T>(...arrays: T[][]): T[][];
-    zip<T>(...arrays: T[][]): T[][];
+    zip<T>(...arrays: T[][]): (T | undefined)[][];
   }
 
   // ── String ────────────────────────────────────────────────────────────
@@ -253,6 +253,7 @@ declare global {
       wait: number,
       options?: { leading?: boolean; trailing?: boolean },
     ): Function & { cancel(): void; flush(): void };
+    toString(): string;
   }
 
   interface FunctionConstructor {
@@ -1311,7 +1312,7 @@ const FunctionPrototype: Record<string, Function> = {
     return once(this as any);
   },
   partial(this: Function, ...partials: unknown[]): Function {
-    return partial(this as any, ...partials);
+    return (partial as Function).call(null, this, ...partials) as Function;
   },
   retry(this: Function, n: number, delayMs = 0): Function {
     const self = this;

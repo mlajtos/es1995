@@ -108,6 +108,53 @@ A first-class `Color` object with perceptually uniform mixing in OKLCH space:
 
 ## Showcase
 
+### ✦ Magnum Opus — Startup Metrics Dashboard
+
+A real analytics pipeline in 28 lines. No libraries. No imports. Just JavaScript, perfected.
+
+```ts
+import "./es1995"
+
+const signups = await fetch("/api/signups").then(r => r.json())
+
+const report = signups
+  .reject((u) => u.email.isBlank())                          // clean data
+  .partition((u) => u.plan === "pro")                         // [pro, free]
+  .tap(([pro, free]) => console.log(`Pro: ${pro.length}, Free: ${free.length}`))
+  .flatMap((group) => group)                                  // flatten back
+  .groupBy((u) => u.createdAt.toDate().format("YYYY-MM"))     // cohort by month
+  .entries()                                                   // Object → Array bridge
+  .sortBy("[0]")                                               // sort by month key
+  .map(([month, users]) => ({
+    month,
+    count:    users.length,
+    revenue:  users.map((u) => u.amount).sum().round(2),
+    avgSpend: users.map((u) => u.amount).average().round(2),
+    topPlan:  users.map((u) => u.plan).frequencies().entries().sortBy("[1]").last()?.[0],
+    badge:    Color.hsl(users.length.clamp(0, 100) * 1.2, 80, 50)
+                .contrastRatio(Color.from("#ffffff")) > 4.5 ? "✅" : "⚠️",
+  }))
+  .tap((rows) => console.log(`Generated ${rows.length} monthly cohorts`))
+  .map((r) => `${r.badge} ${r.month} — ${r.count.ordinal()} cohort | `
+            + `$${r.revenue} rev, $${r.avgSpend} avg | top: ${r.topPlan.capitalize()}`)
+
+report.pipe(console.log)
+```
+
+**What just happened — no lodash, no moment, no chalk, no zod import needed:**
+- `reject` / `partition` / `groupBy` / `frequencies` — Array pipelines that read like English
+- `.entries().sortBy("[0]")` — Object→Array bridge, then sort by key
+- `.toDate().format("YYYY-MM")` — String→Date parsing + formatting, zero libraries  
+- `.sum().round(2)` / `.average()` / `.clamp()` — Number chains, no `Math.round` gymnastics
+- `.isBlank()` / `.capitalize()` / `.ordinal()` — String & Number formatting built-in
+- `Color.hsl(…).contrastRatio(…)` — WCAG accessibility check in one expression
+- `.tap(…)` — Side-effect logging without breaking the chain
+- `.pipe(console.log)` — Terminal output, still fluent
+
+*This is what JavaScript always wanted to be.*
+
+---
+
 ### Fancy FizzBuzz
 
 ```ts

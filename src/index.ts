@@ -15,7 +15,7 @@ test("Fancy FizzBuzz", () => {
         [(n: number) => n.multipleOf(5), () => "Buzz"],
         [(n: number) => n.multipleOf(3), () => "Fizz"],
         [Function.true, Function.identity],
-      ]),
+      ]) as (value: number) => unknown,
     )
     .join(", ")
     .pipe(console.log);
@@ -246,7 +246,7 @@ test("Function Composition", () => {
   const square = (x: number) => x * x;
 
   // Compose (right-to-left)
-  const doubleAndAddOne = addOne.compose(double);
+  const doubleAndAddOne = addOne.compose(double) as (...args: number[]) => number;
   console.log("compose(3):", doubleAndAddOne(3)); // 7
 
   // Static compose and pipe
@@ -502,7 +502,7 @@ test("Caesar Cipher", () => {
   // Brute-force all 26 rotations
   Number.range(0, 26)
     .map((n) => ({ rotation: n, text: shift(encrypted, n) }))
-    .first((r: any) => r.text === message)
+    .first((r: any) => r.text === message)!
     .pipe(console.log);
 });
 

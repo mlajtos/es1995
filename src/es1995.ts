@@ -143,7 +143,6 @@ declare global {
     sum(fn?: ((value: T) => number) | string): number;
     tail(): T[];
     take(count: number): T[];
-    tap(fn: (array: T[]) => void): T[];
     toObject<K extends string | number | symbol, V = T>(
       keyFn: (item: T, index: number) => K,
       valueFn?: (item: T, index: number) => V,
@@ -238,7 +237,7 @@ declare global {
 
   // ── Function ──────────────────────────────────────────────────────────
   interface Function {
-    compose(fn: (...args: unknown[]) => unknown): (...args: unknown[]) => unknown;
+    compose(fn: Function): (...args: unknown[]) => unknown;
     curry(): Function;
     debounce(
       wait: number,
@@ -633,7 +632,7 @@ const ArrayPrototype = {
     return drop(this, n);
   },
   duplicates(this: unknown[]): unknown[] {
-    return filter(this, (val, i, iteratee) => includes(iteratee, val, i + 1));
+    return filter(this, (val: unknown, i: number, iteratee: unknown[]) => includes(iteratee, val, i + 1));
   },
   empty(this: unknown[]): boolean {
     return this.length === 0;
@@ -731,10 +730,6 @@ const ArrayPrototype = {
   take(this: unknown[], count: number): unknown[] {
     return this.slice(0, count);
   },
-  tap(this: unknown[], func: (value: unknown[]) => void): unknown[] {
-    func(this);
-    return this;
-  },
   toObject(
     this: unknown[],
     keyFn: (item: unknown, index: number) => string | number | symbol,
@@ -769,7 +764,7 @@ const ArrayPrototype = {
 
 const ArrayObject = {
   cartesianProduct(...a: unknown[][]): unknown[][] {
-    return a.reduce((a: any, b: any) => a.flatMap((d: any) => b.map((e: any) => [d, e].flat())));
+    return a.reduce((a: any, b: any) => a.flatMap((d: any) => b.map((e: any) => [d, e].flat()))) as unknown[][];
   },
   zip,
 };

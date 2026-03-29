@@ -632,7 +632,7 @@ const ArrayPrototype = {
     return drop(this, n);
   },
   duplicates(this: unknown[]): unknown[] {
-    return filter(this, (val: unknown, i: number, iteratee: unknown[]) => includes(iteratee, val, i + 1));
+    return filter(this, (val: unknown, i: number, arr: unknown[]) => includes(arr, val, i + 1));
   },
   empty(this: unknown[]): boolean {
     return this.length === 0;
@@ -763,8 +763,8 @@ const ArrayPrototype = {
 };
 
 const ArrayObject = {
-  cartesianProduct(...a: unknown[][]): unknown[][] {
-    return a.reduce((a: any, b: any) => a.flatMap((d: any) => b.map((e: any) => [d, e].flat()))) as unknown[][];
+  cartesianProduct(...arrays: unknown[][]): unknown[][] {
+    return arrays.reduce((acc: any, b: any) => acc.flatMap((d: any) => b.map((e: any) => [d, e].flat()))) as unknown[][];
   },
   zip,
 };

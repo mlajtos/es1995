@@ -48,17 +48,17 @@ ES1995 enriches **every** built-in type with composable, predictable methods:
 
 | Primitive | Prototype Methods | Static Methods |
 | ----------- | ----------------------------------------- | ---------------------------------- |
-| **Object** | `pipe`, `tap`, `equals` | `clone`, `cloneDeep`, `pick`, `omit`, `deepMerge`, `deepFreeze`, `defaults`, `mapKeys`, `mapValues` |
+| **Object** | `pipe`, `tap`, `equals`, `entries`, `keys`, `values` | `clone`, `cloneDeep`, `pick`, `omit`, `deepMerge`, `deepFreeze`, `defaults`, `mapKeys`, `mapValues` |
 | **Array** | `at`, `chunk`, `compact`, `count`, `distinct`, `drop`, `duplicates`, `empty`, `except`, `first`, `flattenDeep`, `frequencies`, `groupBy`, `head`, `intersect`, `intersperse`, `last`, `max`, `min`, `average`, `pairwise`, `partition`, `reject`, `reversed`, `rotate`, `scan`, `shuffle`, `sortBy`, `sorted`, `splitAt`, `sum`, `tail`, `take`, `tap`, `toObject`, `transpose`, `uniqueBy`, `union`, `window`, `zip` | `cartesianProduct`, `zip` |
-| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `parseQueryString`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toBytes`, `toDuration`, `toHSL`, `toNumber`, `toOKLCH`, `toRGB`, `truncate`, `unescapeHtml`, `words` | `uuid` |
-| **Number** | `absoluteValue`, `bytes`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toFileSize`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `hsl`, `leastCommonMultiple`, `oklch`, `random`, `range`, `rgb` |
-| **Function** | `compose`, `curry`, `debounce`, `delay`, `flip`, `memoize`, `once`, `partial`, `retry`, `throttle` | `compose`, `conditional`, `constant`, `fixedPoint`, `from`, `identity`, `isFunction`, `noop`, `pipe`, `true`, `false` |
+| **String** | `camelCase`, `capitalize`, `chars`, `count`, `dedent`, `escapeHtml`, `isBlank`, `isPalindrome`, `kebabCase`, `lines`, `parseQueryString`, `removeDiacritics`, `reverse`, `similarityTo`, `snakeCase`, `template`, `toBytes`, `toColor`, `toDate`, `toDuration`, `toNumber`, `truncate`, `unescapeHtml`, `words` | `uuid` |
+| **Number** | `absoluteValue`, `bytes`, `ceil`, `clamp`, `duration`, `floor`, `fractionalPart`, `integerPart`, `inRange`, `isEven`, `isOdd`, `isPrime`, `multipleOf`, `ordinal`, `pad`, `round`, `sign`, `times`, `to`, `toBinary`, `toFileSize`, `toHex`, `toOctal`, `toRoman` | `fibonacci`, `greatestCommonDivisor`, `leastCommonMultiple`, `random`, `range` |
+| **Function** | `compose`, `curry`, `debounce`, `delay`, `flip`, `memoize`, `once`, `partial`, `retry`, `throttle` | `compose`, `conditional`, `constant`, `fixedPoint`, `identity`, `isFunction`, `noop`, `pipe`, `true`, `false` |
 | **Promise** | `tap`, `timeout` | `delay`, `each`, `filter`, `map`, `props`, `retry`, `sleep` |
 | **Date** | `addDays`, `addHours`, `addMinutes`, `addMonths`, `addSeconds`, `addYears`, `age`, `clone`, `daysUntil`, `endOfDay`, `endOfMonth`, `format`, `isFuture`, `isPast`, `isSameDay`, `isToday`, `isWeekday`, `isWeekend`, `relative`, `startOfDay`, `startOfMonth` | `today`, `tomorrow`, `yesterday` |
 | **Math** | | `average`, `degreesToRadians`, `factorial`, `fibonacci`, `inverseLerp`, `isPrime`, `lerp`, `radiansToDegrees`, `sum` |
 | **JSON** | | `safeParse` |
 | **Error** | `toJSON` | |
-| **Symbol** | | `callable`, `documentation` |
+| **Symbol** | | `documentation` |
 | **RegExp** | | `email`, `hexColor`, `IPv4`, `ISO8601`, `queryString`, `URL`, `UUID` |
 
 ### Schema Validation (`z` global)
@@ -76,22 +76,33 @@ A lightweight, Zod-inspired schema validator — zero dependencies, full chainab
 | `z.union(...schemas)` | Union schema |
 | `z.enum(...values)` | Enum schema |
 
+All schemas support `.parse(value)`, `.safeParse(value)`, `.parseAsync(promiseOrValue)`, and `.safeParseAsync(promiseOrValue)`.
+
 ### Type-fest Utility Types
 
 Globally available deep utility types — no imports needed:
 
 `PartialDeep`, `RequiredDeep`, `ReadonlyDeep`, `SetRequired`, `SetOptional`, `SetReadonly`, `Simplify`, `Merge`, `ValueOf`, `Entries`, `StringKeyOf`, `Opaque`, `NonEmptyArray`, `Writable`, `WritableDeep`
 
-### Color Conversions
+### Color Class
+
+A first-class `Color` object with perceptually uniform mixing in OKLCH space:
 
 | Method | Description |
 | --- | --- |
-| `"#ff6347".toRGB()` | Parse hex to `{ r, g, b }` |
-| `"#ff6347".toHSL()` | Parse hex to `{ h, s, l }` |
-| `"#ff6347".toOKLCH()` | Parse hex to `{ L, C, h }` (perceptually uniform) |
-| `Number.rgb(255, 99, 71)` | Create hex from RGB |
-| `Number.hsl(9, 100, 64)` | Create hex from HSL |
-| `Number.oklch(0.7, 0.15, 30)` | Create hex from OKLCH |
+| `Color.from("#ff6347")` | Create from hex string |
+| `Color.rgb(255, 99, 71)` | Create from RGB components |
+| `Color.hsl(9, 100, 64)` | Create from HSL components |
+| `Color.oklch(0.7, 0.15, 30)` | Create from OKLCH (perceptually uniform) |
+| `Color.random()` | Random color |
+| `"#ff6347".toColor()` | String → Color |
+| `.toHex()`, `.toRGB()`, `.toHSL()`, `.toOKLCH()` | Convert between color spaces |
+| `.mix(other, t?)` | Perceptually uniform mixing in OKLCH |
+| `.lighten(n)`, `.darken(n)` | Adjust lightness |
+| `.saturate(n)`, `.desaturate(n)` | Adjust chroma |
+| `.rotate(deg)` | Rotate hue |
+| `.complementary()`, `.analogous()`, `.triadic()` | Color harmonies |
+| `.luminance()`, `.contrastRatio(other)` | Accessibility / WCAG |
 
 ## Showcase
 
@@ -110,22 +121,6 @@ Number.range(1, 101)
   )
   .join(", ")
   .pipe(console.log);
-```
-
-### Functional Objects
-
-```ts
-const count = Function.from({
-  state: 0,
-  [Symbol.callable]() {
-    this.state += 1;
-    return this.state;
-  },
-});
-
-count().pipe(console.log);
-count().pipe(console.log);
-count().pipe(console.log);
 ```
 
 ### Number decomposition
@@ -191,28 +186,27 @@ Number.range(10).shuffle().pipe(mergeSort).pipe(console.log);
 
 ### Color Interpolation – Temperature Gradient
 
-Map temperatures to a cold-to-hot gradient using `Math.lerp` & `Math.inverseLerp`:
+Map temperatures to a cold-to-hot gradient using `Color.mix` (perceptually uniform in OKLCH):
 
 ```ts
-const coldColor = [66, 133, 244];   // #4285F4 (cold blue)
-const hotColor  = [234, 67, 53];    // #EA4335 (hot red)
+const cold = Color.from("#4285F4");  // cold blue
+const hot  = Color.from("#EA4335");  // hot red
 
 const temperatures = [18, 22, 35, 15, 28, 31, 20];
 const [tMin, tMax] = [temperatures.min(), temperatures.max()];
 
 temperatures
   .map((temp) => {
-    const t = Math.inverseLerp(tMin, tMax, temp);           // normalize 0–1
-    const rgb = coldColor.zip(hotColor)
-      .map(([c, h]) => Math.lerp(c, h, t).round(0));       // interpolate each channel
-    return { temp: `${temp}°C`, t: t.round(2), color: `rgb(${rgb.join(",")})` };
+    const t = Math.inverseLerp(tMin, tMax, temp);
+    const color = cold.mix(hot, t);          // perceptually uniform!
+    return { temp: `${temp}°C`, t: t.round(2), color: color.toHex() };
   })
   .sortBy("temp")
   .pipe(console.log);
 
-// { temp: "15°C", t: 0,    color: "rgb(66,133,244)"  }   ← cold blue
-// { temp: "22°C", t: 0.35, color: "rgb(125,110,177)" }
-// { temp: "35°C", t: 1,    color: "rgb(234,67,53)"   }   ← hot red
+// { temp: "15°C", t: 0,    color: "#4285f4" }   ← cold blue
+// { temp: "22°C", t: 0.35, color: "#9d6cbb" }
+// { temp: "35°C", t: 1,    color: "#ea4335" }   ← hot red
 ```
 
 ### Student Grade Report

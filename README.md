@@ -1,8 +1,16 @@
 # ES1995 – The LAST Polyfill
 
-ES1995 is the only JS/TS polyfill you'll ever need. A coherent set of composable primitives that span the whole stack – with an API surface that is predictable and smooth. JavaScript: Batteries Included.
+> *Released April 1, 2026. This is not a joke. The release date is a coincidence.*
 
-Written in TypeScript with first-class type declarations for a smooth editor experience.
+![npm](https://img.shields.io/badge/npm-v2.0.0-brightgreen) ![downloads](https://img.shields.io/badge/downloads-∞%2Fweek-blue) ![bundle](https://img.shields.io/badge/bundle-yes-orange) ![TC39](https://img.shields.io/badge/TC39-pending%20since%201995-red) ![license](https://img.shields.io/badge/license-YOLO--1.0-purple)
+
+ES1995 is the only JS/TS polyfill you'll ever need. The final one. The **last** one. A coherent set of composable primitives that span the whole stack — with an API surface so smooth, `Array.prototype.smooth` was redundant and had to be removed. JavaScript: Batteries Included. All of them. Even the weird square one from the smoke detector.
+
+Written in TypeScript with first-class type declarations for a smooth editor experience. Your IDE will thank you. Your coworkers will think you're a wizard. Your code reviewer will weep tears of joy.
+
+## Why ES1995?
+
+Because JavaScript was created in 10 days and it shows. ES1995 is what happens when you give it the 11th day. We've enriched **every** built-in type — Object, Array, String, Number, Function, Promise, Date, Math, JSON, Error, Symbol, RegExp — with methods that should have been there from the start. No more `Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)` when you could write `arr.average().round(1)`. Life is too short for ceremony.
 
 ## What people said about ES1995
 
@@ -12,15 +20,15 @@ Written in TypeScript with first-class type declarations for a smooth editor exp
 
 > [Alan Kay](https://en.wikiquote.org/wiki/Alan_Kay):
 >
-> "[…][…] The Web in comparison [to the Internet] is a joke. The Web was done by amateurs. […] JS is pile of bricks with limestone on top. […] To be precise, in case of ES1995, a change in perspective is worth **negative** 80 IQ points. […][…] […]"
+> "The Web was done by amateurs. JS is a pile of bricks with limestone on top. In the case of ES1995, a change in perspective is worth **negative** 80 IQ points."
 
 > [Sebastian Mackenzie](https://twitter.com/sebmck):
 >
-> "If we had ES1995, [Rome](https://github.com/rome/tools) **would** be build in a day. Maybe less."
+> "If we had ES1995, [Rome](https://github.com/rome/tools) **would** be built in a day. Maybe less."
 
 > [Joe Armstrong](https://twitter.com/joeerl):
 >
-> "Discovered that I can speak tweets by pressing the microphone button and it gets it right most of the time this is amazing and saves a lot of time.
+> "Discovered that I can speak tweets by pressing the microphone button and it gets it right most of the time — this is amazing and saves a lot of time.
 >
 > One thing puzzles me.
 >
@@ -32,7 +40,7 @@ Written in TypeScript with first-class type declarations for a smooth editor exp
 
 > [Elon Musk](https://twitter.com/elonmusk):
 >
-> "If JS was like this from the start, humans would dominate the whole galaxy and we would have quantum-resistant Bitcoin with instant transactions running on Neuralink. \*\*nodding\*\* "
+> "If JS was like this from the start, humans would dominate the whole galaxy and we would have quantum-resistant Bitcoin with instant transactions running on Neuralink. \*\*nodding\*\*"
 
 > [Steve Ballmer](https://www.youtube.com/watch?v=KMU0tzLwhbE):
 >
@@ -42,9 +50,13 @@ Written in TypeScript with first-class type declarations for a smooth editor exp
 >
 > "I was looking for a replacement for [Perl](https://xkcd.com/224/) and JS with ES1995 looks pretty slick!"
 
+> Your future self, 3 months from now:
+>
+> "Why didn't we use this sooner?"
+
 ## Primitives
 
-ES1995 enriches **every** built-in type with composable, predictable methods.
+ES1995 enriches **every** built-in type with composable, predictable methods. The table below is not a wish list. This is what you get. Right now. Today. April 1st.
 
 > **`tap` is uniform** — `tap(fn)` always passes `this` to `fn` (the whole value), whether called on an Object, Array, or Promise. Use `forEach` for element-wise iteration.
 
@@ -126,7 +138,7 @@ render(html`<${App} />`, document.getElementById("app")!)
 
 ### ✦ Magnum Opus — Intergalactic JS Conference Speaker Rankings 🚀
 
-Data pipeline → Preact UI in 40 lines. No React, no lodash, no moment, no webpack config — just ES1995 + `htm/preact`.
+Data pipeline → rendered Preact UI in 40 lines. No React. No lodash. No moment. No webpack config file longer than your component. Just ES1995 + `htm/preact`. The speakers are real\*. The conference is not\*\*.
 
 ```ts
 import "./es1995"
@@ -184,6 +196,8 @@ render(html`<${App} />`, document.getElementById("app")!)
 - `Color.hsl(…).toHex()` — Color math in one expression
 - `html\`…\`` — Preact components via htm tagged templates, zero JSX transpiler
 - `.first()` / `.last()` / `.tap()` — fluent from start to finish
+
+*\*Some speakers may be deceased, omnipotent, or fictional. \*\*Unless someone actually organizes it, in which case — dibs on keynote.*
 
 *"If we had ES1995, Rome would be built in a day. Maybe less." — Sebastian Mackenzie* 🚀
 
@@ -447,7 +461,7 @@ Number.fibonacci(10);         // [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
 ### Date Made Easy
 
 ```ts
-// Pretend it is 2026-04-01T23:47:00
+// It is April Fools' Day. The code is real. The date is suspicious.
 const now = new Date(2026, 3, 1, 23, 47, 0);
 
 now.format("YYYY-MM-DD HH:mm:ss");   // "2026-04-01 23:47:00"
@@ -561,6 +575,8 @@ RegExp.URL.test("https://example.com");                          // true
 ```
 
 ### Fun fun fun
+
+> *"All work and no play makes Jack mass-adopt a polyfill." — ancient proverb*
 
 ```ts
 const fetchArticle = (id: string) => {
@@ -848,4 +864,12 @@ decode(encode("Hello World"));  // "HELLO WORLD"
 
 ---
 
-Checkout `src/es1995.ts` for other funky stuff.
+<p align="center">
+
+**ES1995** — because the 11th day finally came.
+
+`src/es1995.ts` — one file, ~2000 lines, zero regrets.
+
+*Happy April 1st. The code is real. We checked.*
+
+</p>

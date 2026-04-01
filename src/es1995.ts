@@ -68,6 +68,7 @@ import mdlog from "mdlog";
 // @ts-ignore – mdlog ships JSON color schemes without typings
 import colorScheme from "mdlog/color/solarized-dark.json";
 import { compareTwoStrings } from "string-similarity";
+import { html, render, h, Component } from "htm/preact";
 
 /* ──────────────────────────────────────────────────────────────────────────────
  *  Global Type Augmentations
@@ -495,6 +496,10 @@ declare global {
   }
 
   var Color: ColorConstructor;
+
+  // ── htm + Preact ──────────────────────────────────────────────────────
+  var html: (strings: TemplateStringsArray, ...values: any[]) => any;
+  var render: (vnode: any, parent: Element) => void;
 
   // ── Type-fest Utility Types ───────────────────────────────────────────
   type PartialDeep<T> = T extends object ? { [P in keyof T]?: PartialDeep<T[P]> } : T;
@@ -1921,6 +1926,8 @@ const zImpl = {
 };
 
 (globalThis as any).z = zImpl;
+(globalThis as any).html = html;
+(globalThis as any).render = render;
 
 /*
 

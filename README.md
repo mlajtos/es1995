@@ -106,62 +106,86 @@ A first-class `Color` object with perceptually uniform mixing in OKLCH space:
 | `.complementary()`, `.analogous()`, `.triadic()` | Color harmonies |
 | `.luminance()`, `.contrastRatio(other)` | Accessibility / WCAG |
 
+### htm + Preact
+
+ES1995 ships `htm` + `preact` as first-class globals — JSX-like syntax via tagged template literals, zero build step:
+
+| Global | Description |
+| --- | --- |
+| `` html`<div>…</div>` `` | Tagged template → Preact VNodes (via `htm`) |
+| `render(vnode, container)` | Mount a Preact tree into the DOM |
+
+Components are plain functions. The full ES1995 fluent pipeline feeds directly into `html` templates:
+
+```ts
+const App = () => html`<ul>${items.sortBy("name").map(i => html`<li>${i.name}</li>`)}</ul>`
+render(html`<${App} />`, document.getElementById("app")!)
+```
+
 ## Showcase
 
-### ✦ Magnum Opus — Community Garden Harvest Festival 🌻
+### ✦ Magnum Opus — Intergalactic JS Conference Speaker Rankings 🚀
 
-All the data, right here. 30 lines of pure joy. No lodash, no moment, no nothing — just ES1995.
+Data pipeline → Preact UI in 40 lines. No React, no lodash, no moment, no webpack config — just ES1995 + `htm/preact`.
 
 ```ts
 import "./es1995"
 
-// 🌱 This season's harvest from our community garden
-const plots = [
-  { gardener: "Yuki",    harvested: "2026-09-14", crop: "tomatoes",   kg: 23.7, award: "" },
-  { gardener: "Amara",   harvested: "2026-09-15", crop: "sunflowers", kg: 8.2,  award: "best bloom" },
-  { gardener: "Tomáš",   harvested: "2026-09-14", crop: "peppers",    kg: 15.4, award: "" },
-  { gardener: "Priya",   harvested: "2026-09-16", crop: "tomatoes",   kg: 31.0, award: "biggest yield" },
-  { gardener: "Dante",   harvested: "2026-09-15", crop: "herbs",      kg: 4.8,  award: "" },
-  { gardener: "Siobhán", harvested: "2026-09-14", crop: "peppers",    kg: 19.1, award: "" },
-  { gardener: "Léa",     harvested: "2026-09-16", crop: "sunflowers", kg: 6.5,  award: "" },
-  { gardener: "Kofi",    harvested: "2026-09-15", crop: "tomatoes",   kg: 27.3, award: "" },
+// 🚀 The galaxy's finest JS speakers
+const speakers = [
+  { name: "Brendan Eich",       talk: "I Did JS in 10 Days (AMA)",        planet: "Earth",     rating: 9.7, fee: 50000, confirmed: true  },
+  { name: "God",                talk: "Replacing Perl: A Cosmic Journey", planet: "Heaven",    rating: 9.9, fee: 0,     confirmed: false },
+  { name: "Alan Kay",           talk: "The Web Is Still a Joke",          planet: "Xerox PARC", rating: 8.5, fee: 42000, confirmed: true  },
+  { name: "Steve Ballmer",      talk: "DEVELOPERS DEVELOPERS DEVELOPERS", planet: "Microsoft", rating: 7.2, fee: 99999, confirmed: true  },
+  { name: "Alan Turing",        talk: "What TC39 Can See Ahead",          planet: "Bletchley", rating: 9.1, fee: 0,     confirmed: false },
+  { name: "Sebastian Mackenzie", talk: "Building Rome in < 1 Day",       planet: "GitHub",    rating: 8.8, fee: 15000, confirmed: true  },
+  { name: "Joe Armstrong",      talk: "Stenographers Inside Phones",     planet: "Erlang",    rating: 8.0, fee: 12000, confirmed: true  },
+  { name: "Elon Musk",          talk: "Quantum Bitcoin on Neuralink",    planet: "Mars",      rating: 6.5, fee: 420000, confirmed: false },
 ]
 
-// 🎪 Build the festival program
-const festival = plots
-  .reject((p) => p.kg < 5)                                       // minimum 5kg to enter
-  .sortBy("kg").reversed()                                        // biggest harvest first
-  .tap((top) => console.log(`🏆 Champion: ${top.first().gardener}`))
-  .groupBy("crop")                                                // group by crop type
+// 🎪 Build the conference program
+const program = speakers
+  .reject((s) => !s.confirmed)                                    // only confirmed speakers
+  .sortBy("rating").reversed()                                    // best rated first
+  .tap((top) => console.log(`🏆 Keynote: ${top.first()!.name}`))
+  .groupBy("planet")                                              // group by origin
   .entries()                                                      // Object → Array bridge
-  .map(([crop, growers]) => ({
-    crop:      crop.capitalize(),
-    growers:   growers.length,
-    totalKg:   growers.map((g) => g.kg).sum().round(1),
-    avgKg:     growers.map((g) => g.kg).average().round(1),
-    ribbon:    Color.hsl(growers.length * 90, 75, 55).toHex(),
-    champion:  growers.sortBy("kg").last().gardener,
-    daysAgo:   growers.first().harvested.toDate().daysUntil(Date.today()).absoluteValue(),
-    topAward:  growers.map((g) => g.award).compact().first() ?? "—",
+  .map(([planet, talks]) => ({
+    planet:     planet.capitalize(),
+    speakers:   talks.length,
+    avgRating:  talks.map((t) => t.rating).average().round(1),
+    totalFees:  talks.map((t) => t.fee).sum(),
+    topSpeaker: talks.sortBy("rating").last()!.name,
+    badge:      Color.hsl(talks.length * 120, 70, 50).toHex(),
+    topTalk:    talks.sortBy("rating").last()!.talk,
   }))
-  .sortBy("totalKg").reversed()
-  .map((c) => `${c.ribbon.toColor().darken(0.2).toHex()} ${c.crop.padEnd(12)}`
-    + `${c.growers} growers | ${c.totalKg}kg total, ${c.avgKg}kg avg `
-    + `| 🏅 ${c.champion} | ${c.daysAgo} days ago | ${c.topAward}`)
+  .sortBy("avgRating").reversed()
 
-festival.pipe(console.log)
+// 🚀 Render it — htm + Preact, no build step needed
+const App = () => html`
+  <h1>🚀 Intergalactic JS Conference</h1>
+  ${program.map((p) => html`
+    <div style=${{ borderLeft: "4px solid " + p.badge, padding: "0.5rem 1rem", margin: "1rem 0" }}>
+      <h2>${p.planet}</h2>
+      <p>🎤 <strong>${p.topSpeaker}</strong> — "${p.topTalk}" · ⭐ ${p.avgRating}</p>
+      <p>${p.speakers} speakers · 💰 $${p.totalFees.toLocaleString()}</p>
+    </div>
+  `)}
+`
+
+render(html`<${App} />`, document.getElementById("app")!)
 ```
 
-**What just happened — no lodash, no moment, no chalk needed:**
-- `reject` / `sortBy` / `reversed` / `groupBy` / `compact` — Array pipelines that read like English
+**What just happened — no React, no lodash, no moment needed:**
+- `reject` / `sortBy` / `reversed` / `groupBy` — Array pipelines that read like English
 - `.entries()` — Object→Array bridge for fluent chaining
-- `.sum().round(1)` / `.average()` / `.absoluteValue()` — Number chains, no `Math.round` gymnastics
-- `.capitalize()` / `.padEnd()` — String formatting, built right in
-- `.toDate().daysUntil(Date.today())` — Date arithmetic, zero libraries
-- `Color.hsl(…).toHex()` / `.toColor().darken().toHex()` — Color math in one expression
-- `.first()` / `.last()` / `.tap()` / `.pipe()` — fluent from start to finish
+- `.sum()` / `.average().round(1)` — Number chains, no `Math.round` gymnastics
+- `.capitalize()` — String formatting, built right in
+- `Color.hsl(…).toHex()` — Color math in one expression
+- `html\`…\`` — Preact components via htm tagged templates, zero JSX transpiler
+- `.first()` / `.last()` / `.tap()` — fluent from start to finish
 
-*This is what JavaScript always wanted to be.* 🌻
+*"If we had ES1995, Rome would be built in a day. Maybe less." — Sebastian Mackenzie* 🚀
 
 ---
 

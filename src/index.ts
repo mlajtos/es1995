@@ -5,7 +5,16 @@ import "./es1995";
 // "If JS was like this from the start, humans would dominate the whole galaxy"
 //                                                              — Elon Musk
 
-const speakers = [
+interface Speaker {
+  name: string;
+  talk: string;
+  planet: string;
+  rating: number;
+  fee: number;
+  confirmed: boolean;
+}
+
+const speakers: Speaker[] = [
   { name: "Brendan Eich",       talk: "I Did JS in 10 Days (AMA)",        planet: "Earth",     rating: 9.7, fee: 50000, confirmed: true  },
   { name: "God",                talk: "Replacing Perl: A Cosmic Journey", planet: "Heaven",    rating: 9.9, fee: 0,     confirmed: false },
   { name: "Alan Kay",           talk: "The Web Is Still a Joke",          planet: "Xerox PARC", rating: 8.5, fee: 42000, confirmed: true  },
@@ -26,8 +35,8 @@ const program = speakers
   .map(([planet, talks]) => ({
     planet:     planet.capitalize(),
     speakers:   talks.length,
-    avgRating:  talks.map((t: any) => t.rating).average().round(1),
-    totalFees:  talks.map((t: any) => t.fee).sum(),
+    avgRating:  talks.map((t: Speaker) => t.rating).average().round(1),
+    totalFees:  talks.map((t: Speaker) => t.fee).sum(),
     topSpeaker: talks.sortBy("rating").last()!.name,
     badge:      Color.hsl(talks.length * 120, 70, 50).toHex(),
     topTalk:    talks.sortBy("rating").last()!.talk,
@@ -45,7 +54,7 @@ const App = () => html`
     </p>
 
     <div style=${{ display: "grid", gap: "1rem", marginTop: "1.5rem" }}>
-      ${program.map((p: any) => html`
+      ${program.map((p) => html`
         <div style=${{
           border: "1px solid #e0e0e0",
           borderRadius: "8px",
@@ -55,7 +64,7 @@ const App = () => html`
         }}>
           <div style=${{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <h2 style=${{ margin: 0, fontSize: "1.2rem" }}>
-              ${p.badge.toColor().darken(0.15).toHex() === p.badge ? "🌍" : "🪐"} ${p.planet}
+              ${p.planet === "Earth" ? "🌍" : "🪐"} ${p.planet}
             </h2>
             <span style=${{
               background: p.badge,
